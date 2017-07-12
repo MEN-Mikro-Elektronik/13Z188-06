@@ -1,0 +1,495 @@
+Function Description
+====================
+
+ $Date: 2008/01/10 15:23:25 $
+ $Revision: 1.5 $
+ 
+Overview of all Functions
+-------------------------
+
+M36_GetEntry           - Initialize drivers jump table 
+M36_Init               - Allocate and return ll handle, initialize hardware 
+M36_Exit               - De-initialize hardware and cleanup memory 
+M36_Read               - Reads value from device 
+M36_SetStat            - Set driver status 
+M36_GetStat            - Get driver status 
+M36_BlockRead          - Read data block from device 
+M36_Irq                - Interrupt service routine 
+M36_Info               - Get information about hardware and driver requirements. 
+Ident                  - Return ident string 
+ 
+
+Function M36_GetEntry()
+-----------------------
+
+Syntax:
+    #ifdef _ONE_NAMESPACE_PER_DRIVER_
+        void LL_GetEntry( LL_ENTRY* drvP )
+    #else
+    # ifdef MAC_BYTESWAP
+        void M36_SW_GetEntry( LL_ENTRY* drvP )
+    # else
+        void M36_GetEntry( LL_ENTRY* drvP )
+    # endif
+    #endif
+
+Description:
+    Initialize drivers jump table
+
+Input:
+    ---
+
+Output:
+    drvP  pointer to the initialized jump table structure
+
+
+Function M36_Init()
+-------------------
+
+Syntax:
+    static int32 M36_Init(
+        DESC_SPEC       *descP,
+        OSS_HANDLE      *osHdl,
+        MACCESS         *ma,
+        OSS_SEM_HANDLE  *devSemHdl,
+        OSS_IRQ_HANDLE  *irqHdl,
+        LL_HANDLE       **llHdlP
+    )
+
+Description:
+    Allocate and return ll handle, initialize hardware
+
+    The function initializes all channels with the 
+    definitions made in the descriptor. The interrupt 
+    is disabled.
+
+    The following descriptor keys are used:
+
+    Deskriptor key        Default          Range
+    --------------------  ---------------  -------------
+    DEBUG_LEVEL_DESC      OSS_DBG_DEFAULT  see dbg.h
+    DEBUG_LEVEL_MBUF      OSS_DBG_DEFAULT  see dbg.h
+    DEBUG_LEVEL           OSS_DBG_DEFAULT  see dbg.h
+    ID_CHECK              1                0..1
+    PLD_LOAD              1                0..1 
+    SINGLE_ENDED          1                0..1
+    EXT_TRIG              1                0..1
+    BIPOLAR               0                0..1
+    SAMPLE_ALL            0                0..1 
+    IN_BUF/MODE           0                0..3
+    IN_BUF/SIZE           320              0..max
+    IN_BUF/HIGHWATER      320              0..max
+    IN_BUF/TIMEOUT        1000             0..max
+    CHANNEL_n/ENABLE      1                0..1
+    CHANNEL_n/GAIN        0                0..3
+
+    PLD_LOAD defines, if the PLD should be loaded at INIT.
+       0 = PLD load disabled
+       1 = PLD load enabled
+    With PLD_LOAD=0, ID_CHECK is implicitely disabled.
+    (This key key is for test purposes and should always be set to 1)
+	For the M36N, this value is not relevant since its FPGA content is
+    loaded automatically from Flash.
+
+    SINGLE_ENDED defines, if the input adapter (ADxx) of the
+    module supports single ended or differential inputs.
+
+       0 = differential
+       1 = single ended
+
+    EXT_TRIG defines the sampling mode
+
+       0 = internal trigger (100kHz)
+       1 = external trigger (1..90kHz)
+
+	   Attention: if no external trigger is applied Values are not updated
+
+    BIPOLAR defines the measuring mode of all channels.
+
+       0 = unipolar
+       1 = bipolar
+
+    SAMPLE_ALL defines if all channels or only the enabled 
+    channels will be sampled.
+
+       0 = sample only the enabled channels
+       1 = sample all channels
+
+    MODE defines the buffer's block i/o mode (see MDIS-Doc.):
+
+       0 = M_BUF_USRCTRL
+       1 = M_BUF_CURRBUF
+       2 = M_BUF_RINGBUF
+       3 = M_BUF_RINGBUF_OVERWR
+
+    SIZE defines the size of the input buffer [bytes]
+    (minimum size is 16).
+
+    HIGHWATER defines the buffer level in [bytes], of the 
+    corresponding highwater buffer event (see MDIS-Doc.).
+
+    TIMEOUT defines the buffers read timeout [msec]
+    (where timeout=0: no timeout) (see MDIS-Doc.).
+
+    ENABLE enables/disables channel n. If disabled,
+    the corresponding channel can not be read.
+
+       0 = disable
+       1 = enable
+
+    GAIN defines the gain factor of channel n.
+
+       0 = factor 1
+       1 = factor 2
+       2 = factor 4
+       3 = factor 8
+
+	   M36N specific:
+       4 = factor 16
+
+Input:
+    descSpec   pointer to descriptor data
+    osHdl      oss handle
+    ma         hw access handle
+    devSemHdl  device semaphore handle
+    irqHdl     irq handle
+
+Output:
+    llHdlP     ptr to low level driver handle
+    return     success (0) or error code
+
+
+Function M36_Exit()
+-------------------
+
+Syntax:
+    static int32 M36_Exit(
+       LL_HANDLE    **llHdlP
+    )
+
+Description:
+    De-initialize hardware and cleanup memory
+
+    The function calls Cleanup().
+
+Input:
+    llHdlP    ptr to low level driver handle
+
+Output:
+    return    success (0) or error code
+
+
+Function M36_Read()
+-------------------
+
+Syntax:
+    static int32 M36_Read(
+        LL_HANDLE *llHdl,
+        int32 ch,
+        int32 *value
+    )
+
+Description:
+    Reads value from device
+
+    The function reads the state of the current channel.
+
+    If the channel is not enabled an ERR_LL_READ error
+    is returned.
+
+Input:
+    llHdl    ll handle
+    ch       current channel
+
+Output:
+    valueP   read value
+    return   success (0) or error code
+
+
+Function M36_SetStat()
+----------------------
+
+Syntax:
+    static int32 M36_SetStat(
+        LL_HANDLE *llHdl,
+        int32  code,
+        int32  ch,
+        int32  value
+    )
+
+Description:
+    Set driver status
+
+    Following status codes are supported:
+
+    Code                 Description                Values
+    -------------------  -------------------------  ----------
+    M_LL_DEBUG_LEVEL     driver debug level         see dbg.h
+    M_MK_IRQ_ENABLE      interrupt enable           0..1
+    M_LL_IRQ_COUNT       interrupt counter          0..max
+    M_LL_CH_DIR          direction of curr ch       M_CH_IN
+    M_BUF_xxx            input buffer codes         see MDIS
+    -------------------  -------------------------  ----------
+    M36_CH_ENABLE        enable/disable curr ch     0..1
+                          0 = disable
+                          1 = enable
+    M36_CH_GAIN          gain factor of curr ch     0..3
+                          0 = factor 1
+                          1 = factor 2
+                          2 = factor 4
+                          3 = factor 8
+                          Note: ch must be enabled 
+    M36_BIPOLAR          measuring mode for all ch  0..1
+                          0 = unipolar
+                          1 = bipolar
+                          Note: ch must be enabled 
+    M36_EXT_TRIG         defines the sampling mode  0..1
+                          0 = internal trigger
+                          1 = external trigger
+    M36_CALIBRATE        start calibration          -
+                          Note: interrupt must be
+                                disabled 
+
+Input:
+    llHdl      ll handle
+    code       status code
+    ch         current channel
+    value      data or
+               ptr to block data struct (M_SG_BLOCK)  (*)
+    (*) = for block status codes
+
+Output:
+    return     success (0) or error code
+
+
+Function M36_GetStat()
+----------------------
+
+Syntax:
+    static int32 M36_GetStat(
+        LL_HANDLE *llHdl,
+        int32  code,
+        int32  ch,
+        int32  *valueP
+    )
+
+Description:
+    Get driver status
+
+    Following status codes are supported:
+
+    Code                 Description                Values
+    -------------------  -------------------------  ----------
+    M_LL_DEBUG_LEVEL     driver debug level         see dbg.h
+    M_LL_CH_NUMBER       number of channels         8 or 16
+    M_LL_CH_DIR          direction of curr ch       M_CH_IN
+    M_LL_CH_LEN          length of curr chan [bits] 16
+    M_LL_CH_TYP          description of curr ch     M_CH_ANALOG
+    M_LL_IRQ_COUNT       interrupt counter          0..max
+    M_LL_ID_CHECK        eeprom is checked          0..1
+    M_LL_ID_SIZE         eeprom size [bytes]        128
+    M_LL_BLK_ID_DATA     eeprom raw data            -
+    M_MK_BLK_REV_ID      ident function table ptr   -
+    M_BUF_xxx            input buffer codes         see MDIS
+    -------------------  -------------------------  ----------
+    M36_CH_ENABLE        enable/disable curr ch     0..1
+                          0 = disable
+                          1 = enable
+    M36_CH_GAIN          gain factor of curr ch     0..3
+                          0 = factor 1
+                          1 = factor 2
+                          2 = factor 4
+                          3 = factor 8
+    M36_BIPOLAR          measuring mode for all ch  0..1
+                          0 = unipolar
+                          1 = bipolar
+    M36_EXT_TRIG         defines sampling mode      0..1
+                          0 = internal trigger
+                          1 = external trigger
+    M36_EXT_PIN          state of binary input      0..1
+    M36_SINGLE_ENDED     def. type of input adapter 0..1
+                          0 = differential
+                          1 = single ended
+    M36_NBR_ENABLED_CH    number of enabled channels 0..16
+
+Input:
+    llHdl      ll handle
+    code       status code
+    ch         current channel
+    valueP     ptr to block data struct (M_SG_BLOCK)  (*) 
+    (*) = for block status codes
+
+Output:
+    valueP     data ptr or
+               ptr to block data struct (M_SG_BLOCK)  (*) 
+    return     success (0) or error code
+    (*) = for block status codes
+
+
+Function M36_BlockRead()
+------------------------
+
+Syntax:
+    static int32 M36_BlockRead(
+         LL_HANDLE *llHdl,
+         int32     ch,
+         void      *buf,
+         int32     size,
+         int32     *nbrRdBytesP
+    )
+
+Description:
+    Read data block from device
+
+    Following block i/o modes are supported:
+
+       M_BUF_USRCTRL         direct input
+       M_BUF_RINGBUF         buffered input
+       M_BUF_RINGBUF_OVERWR  buffered input
+       M_BUF_CURRBUF         buffered input
+
+    (Can be defined via M_BUF_RD_MODE setstat, see MDIS-Doc.)
+
+    Direct Input Mode
+    -----------------
+    For the M_BUF_USRCTRL mode, the function reads all input
+    channels, which are enabled for block i/o in ascending order
+    into the given data buffer:
+
+       +---------+
+       |  word 0 |  first enabled input channel
+       +---------+
+       |  word 1 |   
+       +---------+
+       |   ...   |   
+       +---------+
+       |  word k |  last enabled input channel  
+       +---------+
+
+    The maximum size (number of words) which can be read depends
+    on the number of enabled input channels and can be queried
+    via the M36_NBR_ENABLED_CH getstat. 
+
+    If no input channel is enabled ERR_LL_READ is returned.
+
+    Buffered Input Mode
+    -------------------
+    For all other modes, the function copies requested number
+    of bytes from the input buffer to the given data buffer.
+    The interrupt of the carrier board must be enabled for
+    buffered input modes. (see also function M36_Irq)
+
+    For details on buffered input modes refer to the MDIS-Doc.
+
+Input:
+    llHdl        ll handle
+    ch           current channel
+    buf          data buffer
+    size         data buffer size in bytes
+
+Output:
+    nbrRdBytesP  number of read bytes
+    return       success (0) or error code
+
+
+Function M36_Irq()
+------------------
+
+Syntax:
+    static int32 M36_Irq(
+       LL_HANDLE *llHdl
+    )
+
+Description:
+    Interrupt service routine
+
+    The interrupt is triggered every time the internal address
+    pointer of the current data element points to data element
+    0 (when all enabled channels are sampled).
+
+    If an input buffer is used, all input channels, which
+    are enabled for block i/o are stored in ascending order
+    in the input buffer:
+
+       +---------+
+       |  word 0 |  first enabled input channel
+       +---------+
+       |  word 1 |   
+       +---------+
+       |   ...   |   
+       +---------+
+       |  word k |  last enabled input channel  
+       +---------+
+
+Input:
+    llHdl    ll handle
+
+Output:
+    return   LL_IRQ_DEVICE    irq caused from device
+             LL_IRQ_DEV_NOT   irq not caused from device
+             LL_IRQ_UNKNOWN   unknown
+
+
+Function M36_Info()
+-------------------
+
+Syntax:
+    static int32 M36_Info(
+       int32  infoType,
+       ...
+    )
+
+Description:
+    Get information about hardware and driver requirements.
+
+    Following info codes are supported:
+
+    Code                      Description
+    ------------------------  -----------------------------
+    LL_INFO_HW_CHARACTER      hardware characteristics
+    LL_INFO_ADDRSPACE_COUNT   nr of required address spaces
+    LL_INFO_ADDRSPACE         address space information
+    LL_INFO_IRQ               interrupt required
+    LL_INFO_LOCKMODE          process lock mode required
+
+    The LL_INFO_HW_CHARACTER code returns all address and 
+    data modes (OR'ed), which are supported from the
+    hardware (MDIS_MAxx, MDIS_MDxx).
+
+    The LL_INFO_ADDRSPACE_COUNT code returns the number
+    of address spaces used from the driver.
+
+    The LL_INFO_ADDRSPACE code returns information about one
+    specific address space (MDIS_MAxx, MDIS_MDxx). The returned 
+    data mode represents the widest hardware access used from 
+    the driver.
+
+    The LL_INFO_IRQ code returns, if the driver supports an
+    interrupt routine (TRUE or FALSE).
+
+    The LL_INFO_LOCKMODE code returns, which process locking
+    mode is required from the driver (LL_LOCK_xxx).
+
+Input:
+    infoType     info code
+    ...          argument(s)
+
+Output:
+    return       success (0) or error code
+
+
+Function Ident()
+----------------
+
+Syntax:
+    static char* Ident( void )
+
+Description:
+    Return ident string
+
+Input:
+    -
+
+Output:
+    return  ptr to ident string
+

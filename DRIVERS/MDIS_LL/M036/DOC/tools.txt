@@ -1,0 +1,102 @@
+Program Description
+===================
+Wed Apr 14 16:05:42 CEST 2004
+ 
+Overview of all Programs
+------------------------
+
+m36_simp         - M36 example for reading all channels
+m36_read         - Configure and read M36 channel
+m36_blkread      - Configure and read M36 channels (blockwise) 
+
+Program m36_simp
+----------------
+
+Usage:
+   m36_simp <device> <chan>
+
+Function:
+   M36 example for reading all channels
+
+Options:
+   device       device name   
+   
+Description:
+   Simple example program for the M36 driver.   
+   Configure and read all channels.   
+   
+Program m36_read
+----------------
+
+Usage:
+   m36_read [<opts>] <device> [<opts>]
+
+Function:
+   Configure and read M36 channel
+
+Options:
+   device       device name                 [none]   
+   -c=<chan>    channel number (0..7/15)    [0]   
+   -g=<gain>    gain factor                 [x1]   
+                 0 = x1   
+                 1 = x2   
+                 2 = x4   
+                 3 = x8   
+                 4 = x16 (on-board jumper must be set !)   
+   -m=<mode>    measuring mode              [unipolar]   
+                 0=unipolar   
+                 1=bipolar   
+   -t=<trig>    trigger mode                [intern]   
+                 0 = internal trigger     
+                 1 = external trigger     
+   -d=<mode>    display mode                [raw hex]   
+                 0 = raw hex value    
+                 1 = hex and volt     
+                 2 = hex and ampere (only for gain factor x8)   
+   -l           loop mode                   [no]   
+   
+Description:
+   Configure and read M36 input channel   
+   
+Program m36_blkread
+-------------------
+
+Usage:
+   m36_blkread [<opts>] <device> [<opts>]
+
+Function:
+   Configure and read M36 channels (blockwise) 
+
+Options:
+   device       device name                          [none]   
+   -a=<ch>      first channel to read (0..7/15)      [0]   
+   -z=<ch>      last channel to read (0..7/15)       [7/15]   
+   -b=<mode>    block i/o mode                       [USRCTRL]   
+                 0 = M_BUF_USRCTRL   
+                 1 = M_BUF_CURRBUF   
+                 2 = M_BUF_RINGBUF   
+                 3 = M_BUF_RINGBUF_OVERWR   
+   -s=<size>    block size in bytes                  [128]   
+   -o=<msec>    block read timeout [msec] (0=none)   [0]   
+   -g=<gain>    gain factor for all channels         [x1]   
+                 0 = x1   
+                 1 = x2   
+                 2 = x4   
+                 3 = x8   
+                 4 = x16 (on-board jumper must be set !)   
+   -m=<mode>    measuring mode                       [unipolar]   
+                 0=unipolar   
+                 1=bipolar   
+   -t=<trig>    trigger mode                         [intern]   
+                 0 = internal trigger     
+                 1 = external trigger     
+   -d=<mode>    display mode                         [raw hex]   
+                 0 = raw hex value    
+                 1 = volt     
+                 2 = ampere (only for gain factor x8)   
+   -h           install buffer highwater signal      [no]   
+   -l           loop mode                            [no]   
+   
+Description:
+   Configure and read M36 input channels (blockwise)    
+   

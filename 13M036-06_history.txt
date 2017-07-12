@@ -1,0 +1,94 @@
+===== [ History of fileset ART/13M036-06/13M036-06 ] =====
+
+
+commit 62fce680ff52928ddb7976500ebce6aa9d49dc0f
+Author: thomas.schnuerer <thomas.schnuerer@men>
+Date:   Thu Jul 9 15:16:54 2015 +0200
+
+    R: build failed under kernel 3.19, Ubuntu 14.10
+    M: removed DATE and TIME macros from M36_Init, they caused error "might prevent reproducable builds"
+
+commit a3444885ac0e259a221f10ee470a172c643186a9
+Author: thomas.schnuerer <thomas.schnuerer@men>
+Date:   Thu Mar 12 18:42:40 2015 +0100
+
+    initial commit
+
+------- end of cvs maintenance -----------
+
+-----[ Revision 2.3 ]-----
+[ 2014-12-03 11:58:05 by ts ]
+m36_blkread.c
+R: block read returned wrong values, not considering gain factor
+M: corrected wrong calculation, removed gain from it (is already set as a SetStat on M36N)
+
+-----[ Revision 2.2 ]-----
+[ 2009-09-23 18:01:09 by MRoth ]
+R:1. Porting to MDIS5 (according porting guide rev. 0.7)
+  2. M36N ID not supported
+M:1.a) added support for 64bit 
+    b) added casts to avoid compiler warnings
+    c) put all MACCESS macros conditionals in brackets
+    d) added specifier __MAPILIB to declaration of signal handler
+    e) descriptions changed from MDIS4 to MDIS5 
+  2.a) added model M36N to 13m03606.xml 
+    b) added choice for GAIN value=4 (13m03606.xml )
+
+-----[ Revision 2.1 ]-----
+[ 2008-01-10 16:59:01 by ts ]
+m36_drv.c:
+- driver supports both M36 and M36N
+- no PLD load performed if M36N detected
+- calibration data access through Flash for factory calibration
+m36_read.c:
+- fixed: Voltage value from data register was multiplied with passed
+	     gain factor though it already contains the amplified input voltage
+m36_drv.h
+  added SetStats M36_FLASH_ERASE, M36_BLK_FLASH, M36_GET_RAWDAT
+  for M36N factory calibration / Flash access.
+HTML-documentation updated
+
+-----[ Revision 2.0 ]-----
+[ 2004-04-15 12:21:26 by cs ]
+Minor modifications for MDIS4/2004 conformity
+
+-----[ Revision 1.9 ]-----
+[ 2002-09-03 10:28:48 by UFranke ]
+bugfix:
+  - in example m36_simp was defined twice for VxWorks
+
+-----[ Revision 1.8 ]-----
+[ 2002-07-25 16:15:34 by DSchmidt ]
+*** CHANGED FILES ***
+../COM/DRIVERS/MDIS_LL/M036/DRIVER/COM/m36_drv.c RCS 1.5 -> RCS 1.6
+   Calibrate(): added timeout to prevent deadlook if a M36 module doesn't work
+
+-----[ Revision 1.7 ]-----
+[ 2002-06-13 16:35:54 by kp ]
+driver_sw.mak
+   fixed missing m36_pld and mbuf lib
+
+-----[ Revision 1.6 ]-----
+[ 2002-06-13 14:00:41 by kp ]
+M36 driver:
+   support swapped variant
+   all symbols now static (except GetEntry)
+Cosmetic changes in examples
+
+-----[ Revision 1.5 ]-----
+[ 2000-04-11 14:44:36 by Schmidt ]
+*** ADDED FILES ***
+File /_CVS_/COM/DRIVERS/MDIS_LL/M036/TEST/M36_TEST/COM/m36_test.c
+File /_CVS_/COM/DRIVERS/MDIS_LL/M036/TEST/M36_TEST/COM/program.mak
+
+-----[ Revision 1.4 ]-----
+[ 1998-11-27 16:06:52 by Schmidt ]
+force 1.4
+
+-----[ Revision 1.2 ]-----
+[ 1998-11-27 16:04:45 by Schmidt ]
+force 1.4
+
+-----[ Revision 1.1 ]-----
+[ 1998-11-27 15:35:13 by Schmidt ]
+Initial Revision
