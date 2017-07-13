@@ -1,14 +1,32 @@
+
+
+==============================================================================
+HISTORY of M36 which is the base of Z188
+==============================================================================
+
+
 ===== [ History of fileset ART/13M036-06/13M036-06 ] =====
 
+commit ec77acc (HEAD -> master, tag: 13M036-06_02_05, origin/master, origin/HEAD)
+Author: thomas.schnuerer <thomas.schnuerer@men>
+Date:   Thu Jul 14 17:29:39 2016 +0200
 
-commit 62fce680ff52928ddb7976500ebce6aa9d49dc0f
+    R: compiler warning about implicit function fixed by including string.h in driver tool
+
+commit 6910e17 (tag: 13M036-06_02_04)
+Author: thomas.schnuerer <thomas.schnuerer@men>
+Date:   Thu Jul 9 15:22:45 2015 +0200
+
+    R: updated xml file
+
+commit 62fce68
 Author: thomas.schnuerer <thomas.schnuerer@men>
 Date:   Thu Jul 9 15:16:54 2015 +0200
 
     R: build failed under kernel 3.19, Ubuntu 14.10
     M: removed DATE and TIME macros from M36_Init, they caused error "might prevent reproducable builds"
 
-commit a3444885ac0e259a221f10ee470a172c643186a9
+commit a344488 (tag: 13M036-06_02_03)
 Author: thomas.schnuerer <thomas.schnuerer@men>
 Date:   Thu Mar 12 18:42:40 2015 +0100
 
