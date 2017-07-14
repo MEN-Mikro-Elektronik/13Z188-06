@@ -128,8 +128,6 @@ static const char RCSid[]="$Id: m36_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $";
 
 #include <MEN/ll_defs.h>    /* low level driver definitions   */
 
-#include "z188_pld.h"       /* PLD ident/data prototypes      */
-
 /*-----------------------------------------+
 |  DEFINES                                 |
 +-----------------------------------------*/
@@ -146,12 +144,6 @@ static const char RCSid[]="$Id: m36_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $";
 
 #define MOD_ID_M36			0x24	/* classic M36  mod id = 36(dez) */
 #define MOD_ID_M36N			0x7d24	/* New M36N  mod id    = 32036(dez) */
-
-/* 16Z045-01 mapped at 0xF0 in M-Module Addr Space */
-#define	M36_FLASH_ADDLO	 	0xF0	/* Flash IF Address loword	*/
-#define	M36_FLASH_ADDHI	 	0xF2	/* Flash IF Address hiword	*/
-#define	M36_FLASH_DATA	 	0xF4	/* Flash IF Data */
-#define FL_ACC_TOUT			1000000	/* Timeout counter for Flash operations */
 
 /* debug settings */
 #define DBG_MYLEVEL			llHdl->dbgLevel
@@ -184,50 +176,6 @@ static const char RCSid[]="$Id: m36_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $";
 #define bitset(byte,mask)		((byte) |=  (mask))
 #define bitclr(byte,mask)		((byte) &= ~(mask))
 #define bitmove(byte,mask,bit)	(bit ? bitset(byte,mask) : bitclr(byte,mask))
-
-/* helpers for M36N Flash Access */
-#define HIWD(V) 	((V & 0xffff0000)>>16)
-#define LOWD(V) 	( V & 0x0000ffff)
-#define Z45_ADDR(V) ((V & 0x1fffffff)|(1<<30))
-
-
-/*--- Flash command codes ---*/
-#define C_WRITE         0x40 /* write (program) data */
-#define C_CSR           0x50 /* clear status register */
-#define C_RSR           0x70 /* read status register */
-#define C_ERASE         0x20 /* erase single block */
-#define C_IDENTIFIER    0x90 /* read manufacturer code */
-#define C_CONFIRM       0xd0 /* confirm/resume */
-#define C_READ          0xff /* reset to read mode */
-#define C_LOCK_SETUP    0x60 /* lock setup */
-#define C_LOCK          0x01 /* lock command */
-#define C_UNLOCK        0xD0 /* unlock command */
-#define C_LOCK_DOWN     0x2F /* lock down command */
-#define C_PRCR_SETUP    0x60 /* program read configuration register setup */
-#define C_PRCR          0x03 /* program read configuration register */
-
-/*--- flash type with device id ---*/
-#define PC28F640P30T85  0x8817 /* device id */
-
-/* Configuration Register */
-#define CONF_REG        0xBFCF /* 1011111111001111
-                                  |||||||||||||||'- Continuous-word burst
-                                  ||||||||||||||'--
-                                  |||||||||||||'---
-                                  ||||||||||||'---- no wrap
-                                  |||||||||||'----- reserved
-                                  ||||||||||'------ reserved
-                                  |||||||||'------ rising edge
-                                  ||||||||'------- linear burst sequence
-                                  |||||||'-------- WAIT deasserted one data
-                                                   cycle before valid data
-                                  ||||||'--------- WAIT signal is active high
-                                  |||||'---------- Latency count code 7
-                                  ||||'-----------
-                                  |||'------------
-                                  ||'------------- reserved
-                                  |'-------------- asynchronous page mode read
-                               */
 
 /* register device identifier */
 #define BIT_LOCK    0
@@ -292,8 +240,6 @@ typedef struct {
 +-----------------------------------------*/
 static char* Ident( void );
 static int32 Cleanup(LL_HANDLE *llHdl, int32 retCode);
-static void PldLoad(LL_HANDLE *llHdl);
-static int32 Calibrate(LL_HANDLE *llHdl);
 static void InitAllChan(LL_HANDLE *llHdl);
 static void ConfigChan(LL_HANDLE *llHdl, int32 ch);
 
@@ -313,18 +259,6 @@ static int32 M36_BlockWrite(LL_HANDLE *llHdl, int32 ch, void *buf, int32 size,
 							 int32 *nbrWrBytesP);
 static int32 M36_Irq(LL_HANDLE *llHdl );
 static int32 M36_Info(int32 infoType, ... );
-
-/* ts: Functions for Stratix Flash Access */
-static int32 M36_FlashRead(	LL_HANDLE *llHdl, u_int32 address);
-static void  M36_FlashWrite(	LL_HANDLE *llHdl, u_int32 address, u_int16 val);
-static int32 M36_FlashLockBlock( LL_HANDLE *llHdl, u_int32 offset );
-static int32 M36_FlashUnlockBlock( LL_HANDLE *llHdl, u_int32 offset );
-static int32 M36_FlashWriteWord(	LL_HANDLE *llHdl,u_int32 address, u_int16 val);
-static int32 M36_FlashReadStatus( LL_HANDLE *llHdl );
-static int32 M36_FlashEraseBlock( LL_HANDLE *llHdl, u_int32 offset );
-
-
-
 
 
 /**************************** M36_GetEntry *********************************
@@ -465,7 +399,7 @@ static int32 M36_Init(
     LL_HANDLE *llHdl = NULL;
     u_int32 gotsize, pldLoad, ch;
     u_int32 bufSize, bufMode, bufTout, bufHigh, bufDbgLevel;
-    int32 error;
+    int32 error=0;
     u_int32 value;
 
     /*------------------------------+
@@ -490,7 +424,7 @@ static int32 M36_Init(
     +------------------------------*/
 	/* drivers ident function */
 	llHdl->idFuncTbl.idCall[0].identCall = Ident;
-	llHdl->idFuncTbl.idCall[1].identCall = M36_PldIdent;
+	llHdl->idFuncTbl.idCall[1].identCall = NULL;
 	/* libraries ident functions */
 	llHdl->idFuncTbl.idCall[2].identCall = DESC_Ident;
 	llHdl->idFuncTbl.idCall[3].identCall = OSS_Ident;
@@ -678,13 +612,7 @@ static int32 M36_Init(
 
 	}
 
-    DBGWRT_1((DBH, " M36_Init: \n" ));
-
-    /*------------------------------+
-    |  load PLD                     |
-    +------------------------------*/
-	if (pldLoad && (llHdl->modType == MOD_ID_M36))
-		PldLoad( llHdl );
+    DBGWRT_1((DBH, " M36_Init: driver build %s %s\n", __DATE__, __TIME__ ));
 
     /*------------------------------+
     |  init hardware                |
@@ -695,12 +623,7 @@ static int32 M36_Init(
 	/* initialize all channels */
 	InitAllChan(llHdl);
 
-	/* start calibration if its not a M36N */
-	if (llHdl->modType != MOD_ID_M36N)
-		return( Calibrate(llHdl) );
-	else
-		return(ERR_SUCCESS);
-
+	return(error);
 }
 
 
@@ -854,9 +777,6 @@ static int32 M36_SetStat(
 	INT32_OR_64	valueP	= value32_or_64;		/* stores 32/64bit pointer */
 
 	int32 error = ERR_SUCCESS;
-    M_SG_BLOCK *sg = (M_SG_BLOCK *)valueP;
-	u_int16 *dataP;
-	u_int32 i = 0;
 
     DBGWRT_1((DBH, "LL - M36_SetStat: ch=%d code=0x%04x value=0x%x\n",
 			  ch,code,value));
@@ -954,11 +874,7 @@ static int32 M36_SetStat(
 		  |  start calibration      |
 		  +-------------------------*/
 	case M36_CALIBRATE:
-		/* M36N autocalibrates itself */
-		if( llHdl->modType != MOD_ID_M36N )
-			error = Calibrate(llHdl);
-		else
-			error = ERR_LL_ILL_FUNC;
+		error = ERR_LL_ILL_FUNC;
 		break;
 
 /* --- Flash Functions for internal use only! --- */
@@ -968,23 +884,14 @@ static int32 M36_SetStat(
 		  +-------------------------*/
 
 	case M36_FLASH_ERASE:
-		M36_FlashUnlockBlock( llHdl, 0xf0000 );
-		M36_FlashEraseBlock( llHdl,  0xf0000 );
-		M36_FlashLockBlock( llHdl, 	 0xf0000 );
-		OSS_MikroDelay(llHdl->osHdl, 1000);
+		error = ERR_LL_ILL_FUNC;
 		break;
 
 		/*--------------------------+
 		  | M36N Flash Block Write  |
 		  +-------------------------*/
 	case M36_BLK_FLASH:
-
-		dataP = (u_int16*)sg->data;
-		M36_FlashUnlockBlock( llHdl, 0xf0000 );
-		for ( i = 0; i < 0x800; i +=2 )
-			M36_FlashWriteWord( llHdl, 0xff800 + i, *dataP++ );
-		M36_FlashLockBlock( llHdl, 0xf0000 );
-
+		error = ERR_LL_ILL_FUNC;
 		break;
 
 		/*--------------------------+
@@ -1064,8 +971,6 @@ static int32 M36_GetStat(
 	INT32_OR_64	*value64P = value32_or_64P;		 	/* stores 32/64bit pointer  */
 	M_SG_BLOCK	*blk	  = (M_SG_BLOCK*)value32_or_64P; /* stores block struct pointer */
 
-	u_int16 *dataP;
-	/* u_int32 *dataP; */
 	u_int32 i = 0;
 	int32 error = ERR_SUCCESS;
 	u_int32 lo=0, hi=0, lo1=0, hi1=0, lo2=0, hi2=0, longval=0;
@@ -1207,9 +1112,7 @@ static int32 M36_GetStat(
 		 | Flash Block Read        |
 		 +-------------------------*/
 	case M36_BLK_FLASH:
-		dataP 	= (u_int16*)blk->data;
-		for ( i = 0; i < 0x800; i += 2 )
-			*dataP++=(u_int16)M36_FlashRead(llHdl, 0xff800 + i);
+		error = ERR_LL_UNK_CODE;
 		break;
 
         /*--------------------------+
@@ -1664,60 +1567,6 @@ static int32 Cleanup(	/* nodoc */
 	return(retCode);
 }
 
-/******************************** PldLoad ***********************************
- *
- *  Description:  Loading PLD with binary data.
- *                - binary data is stored in field 'M36_PldData'
- *
- *---------------------------------------------------------------------------
- *  Input......:  llHdl		ll handle
- *  Output.....:  ---
- *  Globals....:  ---
- ****************************************************************************/
-static void PldLoad(	/* nodoc */
-	LL_HANDLE *llHdl
-)
-{
-	u_int8	ctrl = 0x00;					/* control word */
-	u_int8  *dataP = (u_int8*)M36_PldData;	/* point to binary data */
-	u_int8	byte;							/* current byte */
-	u_int8	n;								/* count */
-	u_int32	size;							/* size of binary data */
-
-	DBGWRT_1((DBH, "LL - M36: PldLoad\n"));
-
-	/* read+skip size */
-	size  = (u_int32)(*dataP++) << 24;
-	size |= (u_int32)(*dataP++) << 16;
-	size |= (u_int32)(*dataP++) <<  8;
-	size |= (u_int32)(*dataP++);
-
-	/* for all bytes */
-	while(size--) {
-		byte = *dataP++;	/* get next data byte */
-		n = 4;			/* data byte: 4*2 bit */
-
-		/* write data 2 bits */
-		while(n--) {
-			/* clear TCK */
-      		bitclr (ctrl,TCK);
-			MWRITE_D16(llHdl->ma, LOAD_REG, ctrl);
-
-			/* write TDO/TMS bits */
-			bitmove( ctrl, TDO, byte & 0x01);
-			bitmove( ctrl, TMS, byte & 0x02);
-			MWRITE_D16(llHdl->ma, LOAD_REG, ctrl);
-
-			/* set TCK (pulse) */
-			bitset (ctrl,TCK);
-			MWRITE_D16(llHdl->ma, LOAD_REG, ctrl);
-
-			/* shift byte */
-			byte >>= 2;
-		}
-	}
-}
-
 /******************************* InitAllChan ********************************
  *
  *  Description:  Initialize all enabled channels
@@ -1794,278 +1643,3 @@ static void ConfigChan(	/* nodoc */
 
 }
 
-/******************************* Calibrate ***********************************
- *
- *  Description:  Start auto-calibration.
- *
- *                Returns ERR_LL_DEV_NOTRDY error code if the device is not
- *                ready (a timeout occurs).
- *
- *---------------------------------------------------------------------------
- *  Input......:  llHdl		ll handle
- *  Output.....:  return    success (0) or error code
- *  Globals....:  ---
- ****************************************************************************/
-static int32 Calibrate(	/* nodoc */
-	LL_HANDLE *llHdl
-)
-{
-	u_int16 toutLoopCount, regVal;
-	#define TOUT_DELAY 1	/* delay [msec]				 */
-	#define TOUT_LIMIT 100	/* limit [TOUT_DELAY * msec] */
-
-    DBGWRT_1((DBH, "LL - M36: Calibrate\n"));
-
-	/* force internal trigger */
-	if (llHdl->extTrig){
-		MCLRMASK_D16(llHdl->ma, CTRL_REG, EXT);
-	}
-	/* wait for sample */
-	MSETMASK_D16(llHdl->ma, CTRL_REG, RST);			/* irq reset */
-	toutLoopCount = 0;
-	do{
-		OSS_Delay( llHdl->osHdl, TOUT_DELAY );
-		regVal = MREAD_D16(llHdl->ma, STAT_REG);
-		if( toutLoopCount++ > TOUT_LIMIT )
-			goto ABORT;
-	}while( regVal & IRQ );				/* wait for irq=0 (active) */
-
-	/* calibration mode ON */
-	MSETMASK_D16(llHdl->ma, CTRL_REG, CAL);
-
-	/* wait for calibration started */
-	toutLoopCount = 0;
-	do{
-		OSS_Delay( llHdl->osHdl, TOUT_DELAY );
-		regVal = MREAD_D16(llHdl->ma, CTRL_REG);
-		if( toutLoopCount++ > TOUT_LIMIT )
-			goto ABORT;
-	}while( regVal & CAL );
-
-	/* wait for calibration ready */
-	toutLoopCount = 0;
-	do{
-		OSS_Delay( llHdl->osHdl, TOUT_DELAY );
-		regVal = MREAD_D16(llHdl->ma, STAT_REG);
-		if( toutLoopCount++ > TOUT_LIMIT )
-			goto ABORT;
-	} while( regVal & BUSY );
-
-
-	OSS_Delay( llHdl->osHdl, 100);	/* (ca. 43msec required) */
-
-	/* restore trigger */
-	if (llHdl->extTrig){
-		MSETMASK_D16(llHdl->ma, CTRL_REG, EXT);
-	}
-
-	return(ERR_SUCCESS);
-
-ABORT:
-	DBGWRT_ERR((DBH," *** LL - M36: Calibrate: timeout after %dmsec\n",
-		TOUT_DELAY*TOUT_LIMIT));
-
-	return(ERR_LL_DEV_NOTRDY);
-}
-
-/*****************************************************************************/
-/**	M36_FlashRead, helper function to access M36N Stratix Flash
- *
- */
-static int32 M36_FlashRead(
-	LL_HANDLE *llHdl,
-	u_int32 address 		/* nodoc  */
-	)
-{
-
-	u_int16 value = 0xffff;
-    MWRITE_D16( llHdl->ma, M36_FLASH_ADDHI, HIWD(Z45_ADDR(address)) );
-    MWRITE_D16( llHdl->ma, M36_FLASH_ADDLO, LOWD(Z45_ADDR(address)) );
-    value = MREAD_D16( llHdl->ma, M36_FLASH_DATA );
-
-    DBGWRT_3((DBH,"M36_FlashRead: addr 0x%08x = 0x%04x\n", address, value));
-	return value;
-
-}
-
-/*****************************************************************************/
-/**	M36_FlashWrite, helper function to access M36N Stratix Flash
- *
- */
-static void M36_FlashWrite(
-	LL_HANDLE *llHdl,
-	u_int32 address,
-	u_int16 val 			/* nodoc */
-	)
-{
-
-	DBGWRT_3((DBH,"M36_FlashWrite addr 0x%08x = 0x%04x\n", address, val));
-
-    MWRITE_D16( llHdl->ma, M36_FLASH_ADDHI, HIWD( Z45_ADDR(address )) );
-    MWRITE_D16( llHdl->ma, M36_FLASH_ADDLO, LOWD( Z45_ADDR(address )) );
-	MWRITE_D16( llHdl->ma, M36_FLASH_DATA, val);
-}
-
-/*****************************************************************************/
-/**	M36_FlashReadStatus, helper function to access M36N Stratix Flash
- *
- */
-static int32 M36_FlashReadStatus(
-	LL_HANDLE *llHdl 	/* nodoc */
-	)
-{
-
-	int32 retVal = 0;
-
-    /* issue 'Read status Register' command */
-	M36_FlashWrite( llHdl, 0, C_RSR );
-	retVal = M36_FlashRead( llHdl, 0);
-	DBGWRT_3((DBH,"M36_FlashReadStatus = 0x%04x\n", retVal ));
-	return retVal;
-}
-
-/*****************************************************************************/
-/**	M36_FlashWriteWord, helper function to access M36N Stratix Flash
- *
- */
-static int32 M36_FlashWriteWord(
-	LL_HANDLE *llHdl,
-	u_int32 address,
-	u_int16 val			/* nodoc */
-	)
-{
-
-	int32 statusReg=0;
-	u_int32 timeout = FL_ACC_TOUT;
-//    int32 retVal = 0;
-
-	/* issue 'Write' Command */
-	M36_FlashWrite( llHdl, address, C_WRITE );
-
-    /* write data */
-	M36_FlashWrite( llHdl, address, val );
-
-    /* read status register */
-    do {
-		statusReg = M36_FlashReadStatus( llHdl );
-		--timeout;
-    } while( timeout && !(statusReg & (1<<BIT_DWS)));
-
-    /* full status check */
-    /* retVal = FullStatusCheck( adr ); */
-    return timeout? 0 : ERR_LL_WRITE;
-}
-
-/*****************************************************************************/
-/**	M36_FlashUnlockBlock, helper function to access M36N Stratix Flash
- *
- */
-static int32 M36_FlashUnlockBlock(
-	LL_HANDLE *llHdl,
-	u_int32 offset 	/* nodoc */
-	)
-{
-    //u_int16 lockStatus = 0;
-	int32 lockStatus = 0;
-	u_int32 timeout = FL_ACC_TOUT;
-
-	DBGWRT_3((DBH,"M36_FlashUnlockBlock addr 0x%x\n", offset));
-
-    do {
-        /* setup of lock operations */
-		M36_FlashWrite( llHdl, offset, C_LOCK_SETUP );
-
-        /* unlock a block */
-		M36_FlashWrite( llHdl, offset, C_UNLOCK );
-
-        /* read device identifier information (lock status) */
-		M36_FlashWrite( llHdl, offset + OFFSET_LOCK, C_IDENTIFIER );
-        lockStatus = M36_FlashRead( llHdl, offset + OFFSET_LOCK);
-		--timeout;
-    } while( timeout && (lockStatus & (1<< BIT_LOCK )) ); /* unlock ok? */
-
-    /* reach read array mode */
-	M36_FlashWrite( llHdl, 0 , C_READ );
-
-	if (!timeout) {
-		DBGWRT_ERR((DBH," *** M36_FlashUnlockBlock: Timeout occured!\n"));
-		return ERR_LL_WRITE;
-	} else {
-		return 0;
-	}
-}
-
-/*****************************************************************************/
-/**	M36_FlashLockBlock, helper function to access M36N Stratix Flash
- *
- */
-static int32 M36_FlashLockBlock( LL_HANDLE *llHdl, u_int32 offset )
-{
-
-	int32 lockStatus = 0;
-	u_int32 timeout = FL_ACC_TOUT;
-
-    do {
-
-        /* setup of lock operations */
-		M36_FlashWrite( llHdl, offset, C_LOCK_SETUP );
-
-        /* lock this block */
-		M36_FlashWrite( llHdl, offset, C_LOCK );
-
-        /* read device identifier information (lock status) */
-		M36_FlashWrite( llHdl, offset + OFFSET_LOCK, C_IDENTIFIER );
-        lockStatus = M36_FlashRead( llHdl, offset + OFFSET_LOCK);
-		--timeout;
-    } while( timeout && !(lockStatus & ( 1 << BIT_LOCK )) ); /* lock ok? */
-
-    /* reach read array mode */
-	M36_FlashWrite( llHdl,0 , C_READ );
-
-	if (!timeout) {
-	DBGWRT_ERR((DBH," *** M36_FlashLockBlock: Timeout occured!\n"));
-	return ERR_LL_WRITE;
-	} else {
-		return 0;
-	}
-
-}
-
-/*****************************************************************************/
-/**	M36_FlashEraseBlock, helper function to access M36N Stratix Flash
- *
- */
-static int32 M36_FlashEraseBlock(
-	LL_HANDLE *llHdl,
-	u_int32 offset 		/* nodoc */
-	)
-{
-
-	int32 statusReg = 0;
-	u_int32 timeout = FL_ACC_TOUT;
-
-	/* setup of block erase operation */
-	M36_FlashWrite( llHdl, offset, C_ERASE );
-
-	/* erase confirm */
-	M36_FlashWrite( llHdl, offset, C_CONFIRM );
-
-    /* read status register */
-    do{
-        statusReg = M36_FlashReadStatus( llHdl );
-		--timeout;
-    } while( timeout &&  !(statusReg & ( 1 << BIT_DWS )) );
-
-    /* full status check */
-    /* retVal = FullStatusCheck( adr ); */
-
-    /* reach read array mode */
-	M36_FlashWrite( llHdl,0 , C_READ );
-
-	if (!timeout) {
-		DBGWRT_ERR((DBH," *** M36_FlashEraseBlock: Timeout occured!\n"));
-		return ERR_LL_WRITE;
-	} else {
-		return 0;
-	}
-}
