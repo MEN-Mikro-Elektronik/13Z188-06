@@ -1,0 +1,268 @@
+===>
+===> This repo up to now (rev f88bcbc) is just a clone from M36 with files renamed and meta-data adapted to it.
+===> Now let's see which files JT changed and what he did
+===>
+
+men@snyobs:/home/code/13Z188-06$ (cd DRIVERS/MDIS_LL/Z188/; find * -type f) | while read a; do b=${a/z188/f404}; b=${b/Z188/M36}; printf "%-40s %d\n" $a `diff -u DRIVERS/MDIS_LL/Z188/$a ../13f404/$b | wc -l`; done
+DOC/tools.txt                            0
+DOC/z188_drv.html                        0
+DOC/main.html                            0
+DOC/z188_drv.txt                         0
+DRIVER/COM/z188_pld.c                    11
+DRIVER/COM/z188_drv.c                    1239
+DRIVER/COM/z188_pld.h                    0
+DRIVER/COM/driver.mak                    46
+DRIVER/COM/driver_sw.mak                 31
+EXAMPLE/Z188_SIMP/COM/z188_simp.c        0
+EXAMPLE/Z188_SIMP/COM/program.mak        19
+TOOLS/Z188_BLKREAD/COM/program.mak       19
+TOOLS/Z188_BLKREAD/COM/z188_blkread.c    112
+TOOLS/Z188_READ/COM/z188_read.c          11
+TOOLS/Z188_READ/COM/program.mak          19
+
+men@snyobs:/home/code/13Z188-06$ (cd DRIVERS/MDIS_LL/Z188/; find * -type f) | while read a; do b=${a/z188/f404}; b=${b/Z188/M36}; printf "%-40s %d\n" $a `diff -u DRIVERS/MDIS_LL/Z188/$a ../13f404/$b | wc -l`; (cd ../13f404; git lsa -- $b); done
+DOC/tools.txt                            0
+* 7d47e74 Wed Sep 4 10:53:15 2013 Johannes Thumshirn        
+          Initial Import                                                        
+DOC/z188_drv.html                        0
+* 7d47e74 Wed Sep 4 10:53:15 2013 Johannes Thumshirn        
+          Initial Import                                                        
+DOC/main.html                            0
+* 7d47e74 Wed Sep 4 10:53:15 2013 Johannes Thumshirn        
+          Initial Import                                                        
+DOC/z188_drv.txt                         0
+* 7d47e74 Wed Sep 4 10:53:15 2013 Johannes Thumshirn        
+          Initial Import                                                        
+DRIVER/COM/z188_pld.c                    11
+* 7d47e74 Wed Sep 4 10:53:15 2013 Johannes Thumshirn        
+          Initial Import                                                        
+DRIVER/COM/z188_drv.c                    1239
+* 446899a Tue Jan 31 17:53:00 2017 Christian Zoz            
+|         Changes probably from Johannes                                        
+* a036de7 Thu Sep 12 13:44:34 2013 Johannes Thumshirn       
+|         F404: Remove references to M36                                        
+* 7d47e74 Wed Sep 4 10:53:15 2013 Johannes Thumshirn        
+          Initial Import                                                        
+DRIVER/COM/z188_pld.h                    0
+* 7d47e74 Wed Sep 4 10:53:15 2013 Johannes Thumshirn        
+          Initial Import                                                        
+DRIVER/COM/driver.mak                    46
+* 7d47e74 Wed Sep 4 10:53:15 2013 Johannes Thumshirn        
+          Initial Import                                                        
+DRIVER/COM/driver_sw.mak                 31
+* 7d47e74 Wed Sep 4 10:53:15 2013 Johannes Thumshirn        
+          Initial Import                                                        
+EXAMPLE/Z188_SIMP/COM/z188_simp.c        0
+* 7d47e74 Wed Sep 4 10:53:15 2013 Johannes Thumshirn        
+          Initial Import                                                        
+EXAMPLE/Z188_SIMP/COM/program.mak        19
+* 7d47e74 Wed Sep 4 10:53:15 2013 Johannes Thumshirn        
+          Initial Import                                                        
+TOOLS/Z188_BLKREAD/COM/program.mak       19
+* 7d47e74 Wed Sep 4 10:53:15 2013 Johannes Thumshirn        
+          Initial Import                                                        
+TOOLS/Z188_BLKREAD/COM/z188_blkread.c    112
+* 7d47e74 Wed Sep 4 10:53:15 2013 Johannes Thumshirn        
+          Initial Import                                                        
+TOOLS/Z188_READ/COM/z188_read.c          11
+* 7d47e74 Wed Sep 4 10:53:15 2013 Johannes Thumshirn        
+          Initial Import                                                        
+TOOLS/Z188_READ/COM/program.mak          19
+* 7d47e74 Wed Sep 4 10:53:15 2013 Johannes Thumshirn        
+          Initial Import                                                        
+men@snyobs:/home/code/13Z188-06$ 
+
+===>
+===> The only relevant changes to look at are in these two files 
+===> DRIVERS/MDIS_LL/Z188/DRIVER/COM/z188_drv.c
+===> DRIVERS/MDIS_LL/Z188/TOOLS/Z188_BLKREAD/COM/z188_blkread.c
+===>
+===> z188_blkread.c:
+===> these changes were already in 13m036-06 repo. JTs work was based on an older version. 
+===> JT did not change z188_blkread.c
+===>
+===> Also z188_blkread.c had a small change in 13m036-06 after JTs work.
+===> (patch in JT/m36-1.10-1.11-patch)
+===> Therefore I will get all revisions from that file from 13f404 repo (incl.
+===> the file versions that were found at other places) and first apply
+===> that m036 patch to them.
+===> Then I can incorporate the changes in my repository
+===> (in 13f404 repo in info is a list of changes in ascending order. Search for 'ascending order:' there.)
+===>
+
+(cd ../13f404; git show 7d47e74:DRIVER/COM/f404_drv.c) > 		JT/01__7d47e74__f404_drv.c
+(cd ../13f404; git show a036de7:DRIVER/COM/f404_drv.c) > 		JT/02__a036de7__f404_drv.c
+(cd ../13f404; git show 446899a:DRIVER/COM/f404_drv.c) > 		JT/03__446899a__f404_drv.c
+cp ../13f404/from-instep/DRIVER_COM_f404_drv.c-2013-09-24_v0.1 		JT/04__instep-v0.1__f404_drv.c 
+cp /archlinux/opt/menlinux/DRIVERS/MDIS_LL/Z188/DRIVER/COM/f404_drv.c~ 	JT/05__MDIS-backup__f404_drv.c 
+cp ../13f404/from-instep/DRIVER_COM_f404_drv.c-2013-10-09_v0.4 		JT/06__instep-v0.4__f404_drv.c 
+cp /archlinux/opt/menlinux/DRIVERS/MDIS_LL/Z188/DRIVER/COM/f404_drv.c 	JT/07__MDIS__f404_drv.c 
+
+
+===>
+===> All other changes are adaptions to differing file names
+===> or changes in file history comments
+===> See the diffs below
+===>
+===> !!! DID NOT CHECK SO FAR IF /archlinux/opt/menlinux/DRIVERS/MDIS_LL/Z188/TOOLS
+===> !!! HAS RELEVANT CHANGES
+===>
+
+
+men@snyobs:/home/code/13Z188-06$ (cd DRIVERS/MDIS_LL/Z188/; find * -type f) | while read a; do b=${a/z188/f404}; b=${b/Z188/M36}; diff -u DRIVERS/MDIS_LL/Z188/$a ../13f404/$b ; done > comparison_with_f404_from_JT
+--- DRIVERS/MDIS_LL/Z188/DRIVER/COM/z188_pld.c	2017-07-13 18:00:12.189222554 +0200
++++ ../13f404/DRIVER/COM/f404_pld.c	2017-05-09 11:37:59.680804486 +0200
+@@ -20,7 +20,7 @@
+ static const char RCSid[]="$Id: m36_pld.c,v 1.1 1998/11/17 10:04:07 Schmidt Exp $";
+ 
+ #include <MEN/men_typs.h>   /* system dependend definitions   */
+-#include "z188_pld.h"		/* local prototypes */
++#include "m36_pld.h"		/* local prototypes */
+ 
+ /* M36_PldIdent: return ident string */
+ char* M36_PldIdent( void )
+--- DRIVERS/MDIS_LL/Z188/DRIVER/COM/driver.mak	2017-07-13 18:00:12.185224164 +0200
++++ ../13f404/DRIVER/COM/driver.mak	2017-05-09 11:37:59.676804496 +0200
+@@ -9,22 +9,11 @@
+ #---------------------------------[ History ]---------------------------------
+ #
+ #   $Log: driver.mak,v $
+-#   Revision 1.3  2004/04/15 12:19:45  cs
+-#   Minor modifications for MDIS4/2004 conformity
+-#         removed unused  MAK_OPTIM=$(OPT_1)
+-#         added MAK_SWITCH=$(SW_PREFIX)MAC_MEM_MAPPED
+-#
+-#   Revision 1.2  2002/07/25 16:12:02  DSchmidt
+-#   m36_pld.h added
+-#
+-#   Revision 1.1  1998/11/17 10:03:59  Schmidt
+-#   Added by mcvs
+-#
+ #-----------------------------------------------------------------------------
+ #   (c) Copyright 1998 by MEN mikro elektronik GmbH, Nuernberg, Germany
+ #*****************************************************************************
+ 
+-MAK_NAME=z188
++MAK_NAME=f404
+ 
+ MAK_SWITCH=$(SW_PREFIX)MAC_MEM_MAPPED
+ 
+@@ -35,8 +24,7 @@
+          $(LIB_PREFIX)$(MEN_LIB_DIR)/dbg$(LIB_SUFFIX)     \
+ 
+ 
+-MAK_INCL=$(MEN_MOD_DIR)/z188_pld.h    \
+-		 $(MEN_INC_DIR)/m36_drv.h     \
++MAK_INCL=$(MEN_INC_DIR)/m36_drv.h     \
+          $(MEN_INC_DIR)/men_typs.h    \
+          $(MEN_INC_DIR)/oss.h         \
+          $(MEN_INC_DIR)/mdis_err.h    \
+@@ -50,8 +38,7 @@
+          $(MEN_INC_DIR)/ll_entry.h    \
+          $(MEN_INC_DIR)/dbg.h    \
+ 
+-MAK_INP1=z188_drv$(INP_SUFFIX)
+-MAK_INP2=z188_pld$(INP_SUFFIX)
++MAK_INP1=f404_drv$(INP_SUFFIX)
+ 
+ MAK_INP=$(MAK_INP1) \
+         $(MAK_INP2)
+--- DRIVERS/MDIS_LL/Z188/DRIVER/COM/driver_sw.mak	2017-07-13 18:00:12.185224164 +0200
++++ ../13f404/DRIVER/COM/driver_sw.mak	2017-05-09 11:37:59.676804496 +0200
+@@ -23,7 +23,7 @@
+ #   (c) Copyright 2002 by MEN mikro elektronik GmbH, Nuernberg, Germany
+ #*****************************************************************************
+ 
+-MAK_NAME=z188_sw
++MAK_NAME=m36_sw
+ 
+ MAK_SWITCH=$(SW_PREFIX)MAC_MEM_MAPPED \
+ 		   $(SW_PREFIX)MAC_BYTESWAP \
+@@ -37,7 +37,7 @@
+          $(LIB_PREFIX)$(MEN_LIB_DIR)/dbg$(LIB_SUFFIX) 
+ 
+ 
+-MAK_INCL=$(MEN_MOD_DIR)/z188_pld.h    \
++MAK_INCL=$(MEN_MOD_DIR)/m36_pld.h     \
+ 		 $(MEN_INC_DIR)/m36_drv.h     \
+          $(MEN_INC_DIR)/men_typs.h    \
+          $(MEN_INC_DIR)/oss.h         \
+@@ -52,8 +52,8 @@
+          $(MEN_INC_DIR)/ll_entry.h    \
+          $(MEN_INC_DIR)/dbg.h    \
+ 
+-MAK_INP1=z188_drv$(INP_SUFFIX)
+-MAK_INP2=z188_pld$(INP_SUFFIX)
++MAK_INP1=m36_drv$(INP_SUFFIX)
++MAK_INP2=m36_pld$(INP_SUFFIX)
+ 
+ MAK_INP=$(MAK_INP1) $(MAK_INP2)
+ 
+--- DRIVERS/MDIS_LL/Z188/EXAMPLE/Z188_SIMP/COM/program.mak	2017-07-13 18:00:12.189222554 +0200
++++ ../13f404/EXAMPLE/M36_SIMP/COM/program.mak	2017-05-09 11:37:59.684804494 +0200
+@@ -20,7 +20,7 @@
+ #   (c) Copyright 1998 by MEN mikro elektronik GmbH, Nuernberg, Germany
+ #*****************************************************************************
+ 
+-MAK_NAME=z188_simp
++MAK_NAME=f404_simp
+ 
+ MAK_LIBS=$(LIB_PREFIX)$(MEN_LIB_DIR)/mdis_api$(LIB_SUFFIX)    \
+          $(LIB_PREFIX)$(MEN_LIB_DIR)/usr_oss$(LIB_SUFFIX)     \
+@@ -34,6 +34,6 @@
+          $(MEN_INC_DIR)/usr_utl.h     \
+ 
+ 
+-MAK_INP1=z188_simp$(INP_SUFFIX)
++MAK_INP1=f404_simp$(INP_SUFFIX)
+ 
+ MAK_INP=$(MAK_INP1)
+--- DRIVERS/MDIS_LL/Z188/TOOLS/Z188_BLKREAD/COM/program.mak	2017-07-13 18:00:12.189222554 +0200
++++ ../13f404/TOOLS/M36_BLKREAD/COM/program.mak	2017-05-09 11:37:59.684804494 +0200
+@@ -21,7 +21,7 @@
+ #   (c) Copyright 1998 by MEN mikro elektronik GmbH, Nuernberg, Germany
+ #*****************************************************************************
+ 
+-MAK_NAME=z188_blkread
++MAK_NAME=f404_blkread
+ 
+ MAK_LIBS=$(LIB_PREFIX)$(MEN_LIB_DIR)/mdis_api$(LIB_SUFFIX)    \
+          $(LIB_PREFIX)$(MEN_LIB_DIR)/usr_oss$(LIB_SUFFIX)     \
+@@ -33,6 +33,6 @@
+          $(MEN_INC_DIR)/usr_oss.h     \
+          $(MEN_INC_DIR)/usr_utl.h     \
+ 
+-MAK_INP1=z188_blkread$(INP_SUFFIX)
++MAK_INP1=f404_blkread$(INP_SUFFIX)
+ 
+ MAK_INP=$(MAK_INP1)
+--- DRIVERS/MDIS_LL/Z188/TOOLS/Z188_READ/COM/z188_read.c	2017-07-12 16:30:34.742988200 +0200
++++ ../13f404/TOOLS/M36_READ/COM/f404_read.c	2017-05-09 11:37:59.688804492 +0200
+@@ -48,7 +48,7 @@
+ 
+ #include <stdio.h>
+ #include <stdlib.h>
+-#include <string.h>
++
+ #include <MEN/men_typs.h>
+ #include <MEN/usr_oss.h>
+ #include <MEN/usr_utl.h>
+--- DRIVERS/MDIS_LL/Z188/TOOLS/Z188_READ/COM/program.mak	2017-07-13 18:00:12.189222554 +0200
++++ ../13f404/TOOLS/M36_READ/COM/program.mak	2017-05-09 11:37:59.688804492 +0200
+@@ -21,7 +21,7 @@
+ #   (c) Copyright 1998 by MEN mikro elektronik GmbH, Nuernberg, Germany
+ #*****************************************************************************
+ 
+-MAK_NAME=z188_read
++MAK_NAME=f404_read
+ 
+ MAK_LIBS=$(LIB_PREFIX)$(MEN_LIB_DIR)/mdis_api$(LIB_SUFFIX)    \
+          $(LIB_PREFIX)$(MEN_LIB_DIR)/usr_oss$(LIB_SUFFIX)     \
+@@ -33,6 +33,6 @@
+          $(MEN_INC_DIR)/usr_oss.h     \
+          $(MEN_INC_DIR)/usr_utl.h     \
+ 
+-MAK_INP1=z188_read$(INP_SUFFIX)
++MAK_INP1=f404_read$(INP_SUFFIX)
+ 
+ MAK_INP=$(MAK_INP1)
