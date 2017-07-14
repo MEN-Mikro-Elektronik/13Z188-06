@@ -11,18 +11,7 @@
   *
   *  Description: Low level driver for M36 modules
   *
-@@ -64,6 +64,10 @@
-  *-------------------------------[ History ]---------------------------------
-  *
-  * $Log: m36_drv.c,v $
-+ * Revision 1.11  2010/09/21 17:47:59  ts
-+ * R: channel and code mismatch in Prototype declaration of GetStat/SetStat
-+ * M: corrected copy/paste error
-+ *
-  * Revision 1.10  2009/09/23 17:48:21  MRoth
-  * R: Porting to MDIS5 (according porting guide rev. 0.7)
-  * M: a) added support for 64bit (Set/GetStat prototypes, m_read calls)
-@@ -107,7 +111,7 @@
+@@ -107,7 +107,7 @@
   * (c) Copyright 1998 by MEN mikro elektronik GmbH, Nuernberg, Germany
   ****************************************************************************/
  
@@ -31,7 +20,7 @@
  
  #define _NO_LL_HANDLE		/* ll_defs.h: don't define LL_HANDLE struct */
  
-@@ -299,9 +303,9 @@
+@@ -299,9 +299,9 @@
  static int32 M36_Exit(LL_HANDLE **llHdlP );
  static int32 M36_Read(LL_HANDLE *llHdl, int32 ch, int32 *value);
  static int32 M36_Write(LL_HANDLE *llHdl, int32 ch, int32 value);
@@ -43,16 +32,7 @@
  							INT32_OR_64 *value32_or_64P );
  static int32 M36_BlockRead(LL_HANDLE *llHdl, int32 ch, void *buf, int32 size,
  							int32 *nbrRdBytesP);
-@@ -674,7 +678,7 @@
- 
- 	}
- 
--    DBGWRT_1((DBH, " M36_Init: driver build %s %s\n", __DATE__, __TIME__ ));
-+    DBGWRT_1((DBH, " M36_Init: \n" ));
- 
-     /*------------------------------+
-     |  load PLD                     |
-@@ -1615,7 +1619,7 @@
+@@ -1615,7 +1615,7 @@
   ****************************************************************************/
  static char* Ident( void )
  {

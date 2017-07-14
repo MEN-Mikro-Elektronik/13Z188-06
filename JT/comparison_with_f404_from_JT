@@ -86,6 +86,9 @@ men@snyobs:/home/code/13Z188-06$
 ===> Therefore I will get all revisions from that file from 13f404 repo (incl.
 ===> the file versions that were found at other places) and first apply
 ===> that m036 patch to them.
+===> Additionally I re-add the history section of m036 (file filehist-patch)
+===>
+===>
 ===> Then I can incorporate the changes in my repository
 ===> (in 13f404 repo in info is a list of changes in ascending order. Search for 'ascending order:' there.)
 ===>
