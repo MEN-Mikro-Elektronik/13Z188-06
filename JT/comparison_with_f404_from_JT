@@ -102,6 +102,10 @@ cp /archlinux/opt/menlinux/DRIVERS/MDIS_LL/Z188/DRIVER/COM/f404_drv.c~ 	JT/05__M
 cp ../13f404/from-instep/DRIVER_COM_f404_drv.c-2013-10-09_v0.4 		JT/06__instep-v0.4__f404_drv.c 
 cp /archlinux/opt/menlinux/DRIVERS/MDIS_LL/Z188/DRIVER/COM/f404_drv.c 	JT/07__MDIS__f404_drv.c 
 
+===> After committing JT/01__7d47e74__f404_drv.c:
+===> I replace all F404 by Z188, because F404 is wrong in every case
+
+sed -i 's/F404/Z188/g' JT/0*
 
 ===>
 ===> All other changes are adaptions to differing file names

@@ -243,25 +243,25 @@ static int32 Cleanup(LL_HANDLE *llHdl, int32 retCode);
 static void InitAllChan(LL_HANDLE *llHdl);
 static void ConfigChan(LL_HANDLE *llHdl, int32 ch);
 
-static int32 F404_Init(DESC_SPEC *descSpec, OSS_HANDLE *osHdl,
+static int32 Z188_Init(DESC_SPEC *descSpec, OSS_HANDLE *osHdl,
 					   MACCESS *ma, OSS_SEM_HANDLE *devSemHdl,
 					   OSS_IRQ_HANDLE *irqHdl, LL_HANDLE **llHdlP);
-static int32 F404_Exit(LL_HANDLE **llHdlP );
-static int32 F404_Read(LL_HANDLE *llHdl, int32 ch, int32 *value);
-static int32 F404_Write(LL_HANDLE *llHdl, int32 ch, int32 value);
-static int32 F404_SetStat(LL_HANDLE *llHdl,int32 code, int32 ch,
+static int32 Z188_Exit(LL_HANDLE **llHdlP );
+static int32 Z188_Read(LL_HANDLE *llHdl, int32 ch, int32 *value);
+static int32 Z188_Write(LL_HANDLE *llHdl, int32 ch, int32 value);
+static int32 Z188_SetStat(LL_HANDLE *llHdl,int32 code, int32 ch,
 							INT32_OR_64 value32_or_64);
-static int32 F404_GetStat(LL_HANDLE *llHdl, int32 code, int32 ch,
+static int32 Z188_GetStat(LL_HANDLE *llHdl, int32 code, int32 ch,
 							INT32_OR_64 *value32_or_64P);
-static int32 F404_BlockRead(LL_HANDLE *llHdl, int32 ch, void *buf, int32 size,
+static int32 Z188_BlockRead(LL_HANDLE *llHdl, int32 ch, void *buf, int32 size,
 							int32 *nbrRdBytesP);
-static int32 F404_BlockWrite(LL_HANDLE *llHdl, int32 ch, void *buf, int32 size,
+static int32 Z188_BlockWrite(LL_HANDLE *llHdl, int32 ch, void *buf, int32 size,
 							 int32 *nbrWrBytesP);
-static int32 F404_Irq(LL_HANDLE *llHdl );
-static int32 F404_Info(int32 infoType, ... );
+static int32 Z188_Irq(LL_HANDLE *llHdl );
+static int32 Z188_Info(int32 infoType, ... );
 
 
-/**************************** F404_GetEntry *********************************
+/**************************** Z188_GetEntry *********************************
  *
  *  Description:  Initialize drivers jump table
  *
@@ -274,25 +274,25 @@ static int32 F404_Info(int32 infoType, ... );
     void LL_GetEntry( LL_ENTRY* drvP )
 #else
 # ifdef	MAC_BYTESWAP
-	void F404_SW_GetEntry( LL_ENTRY*	drvP )
+	void Z188_SW_GetEntry( LL_ENTRY*	drvP )
 # else
-	void F404_GetEntry( LL_ENTRY* drvP )
+	void Z188_GetEntry( LL_ENTRY* drvP )
 # endif
 #endif
 {
-    drvP->init        = F404_Init;
-    drvP->exit        = F404_Exit;
-    drvP->read        = F404_Read;
-    drvP->write       = F404_Write;
-    drvP->blockRead   = F404_BlockRead;
-    drvP->blockWrite  = F404_BlockWrite;
-    drvP->setStat     = F404_SetStat;
-    drvP->getStat     = F404_GetStat;
-    drvP->irq         = F404_Irq;
-    drvP->info        = F404_Info;
+    drvP->init        = Z188_Init;
+    drvP->exit        = Z188_Exit;
+    drvP->read        = Z188_Read;
+    drvP->write       = Z188_Write;
+    drvP->blockRead   = Z188_BlockRead;
+    drvP->blockWrite  = Z188_BlockWrite;
+    drvP->setStat     = Z188_SetStat;
+    drvP->getStat     = Z188_GetStat;
+    drvP->irq         = Z188_Irq;
+    drvP->info        = Z188_Info;
 }
 
-/******************************** F404_Init ***********************************
+/******************************** Z188_Init ***********************************
  *
  *  Description:  Allocate and return ll handle, initialize hardware
  *
@@ -387,7 +387,7 @@ static int32 F404_Info(int32 infoType, ... );
  *                return     success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
-static int32 F404_Init(
+static int32 Z188_Init(
     DESC_SPEC       *descP,
     OSS_HANDLE      *osHdl,
     MACCESS         *ma,
@@ -438,7 +438,7 @@ static int32 F404_Init(
 	DBG_MYLEVEL = OSS_DBG_DEFAULT;	/* set OS specific debug level */
 	DBGINIT((NULL,&DBH));
 
-    DBGWRT_1((DBH, "LL - F404_Init\n"));
+    DBGWRT_1((DBH, "LL - Z188_Init\n"));
 
     /*------------------------------+
     |  scan descriptor              |
@@ -596,13 +596,13 @@ static int32 F404_Init(
 
 		if (modIdMagic != MOD_ID_MAGIC) {
 			DBGWRT_ERR((DBH,
-						" *** F404_Init: illegal magic=0x%04x\n",modIdMagic));
+						" *** Z188_Init: illegal magic=0x%04x\n",modIdMagic));
 			error = ERR_LL_ILL_ID;
 			return( Cleanup(llHdl,error) );
 		}
 
 		if ((modId != MOD_ID_M36) && (modId != MOD_ID_M36N)) {
-			DBGWRT_ERR((DBH," *** F404_Init: illegal id=%d\n",modId));
+			DBGWRT_ERR((DBH," *** Z188_Init: illegal id=%d\n",modId));
 			error = ERR_LL_ILL_ID;
 			return( Cleanup(llHdl,error) );
 		}
@@ -612,7 +612,7 @@ static int32 F404_Init(
 
 	}
 
-    DBGWRT_1((DBH, " F404_Init: driver build %s %s\n", __DATE__, __TIME__ ));
+    DBGWRT_1((DBH, " Z188_Init: driver build %s %s\n", __DATE__, __TIME__ ));
 
     /*------------------------------+
     |  init hardware                |
@@ -628,7 +628,7 @@ static int32 F404_Init(
 
 
 
-/****************************** F404_Exit *************************************
+/****************************** Z188_Exit *************************************
  *
  *  Description:  De-initialize hardware and cleanup memory
  *
@@ -639,14 +639,14 @@ static int32 F404_Init(
  *  Output.....:  return    success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
-static int32 F404_Exit(
+static int32 Z188_Exit(
    LL_HANDLE    **llHdlP
 )
 {
     LL_HANDLE *llHdl = *llHdlP;
 	int32 error = 0;
 
-    DBGWRT_1((DBH, "LL - F404_Exit\n"));
+    DBGWRT_1((DBH, "LL - Z188_Exit\n"));
 
     /*------------------------------+
     |  de-init hardware             |
@@ -661,7 +661,7 @@ static int32 F404_Exit(
 	return(error);
 }
 
-/****************************** F404_Read *************************************
+/****************************** Z188_Read *************************************
  *
  *  Description:  Reads value from device
  *
@@ -677,13 +677,13 @@ static int32 F404_Exit(
  *                return   success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
-static int32 F404_Read(
+static int32 Z188_Read(
     LL_HANDLE *llHdl,
     int32 ch,
     int32 *value
 )
 {
-    DBGWRT_1((DBH, "LL - F404_Read: ch=%d\n",ch));
+    DBGWRT_1((DBH, "LL - Z188_Read: ch=%d\n",ch));
 
 	/* channel disabled ? */
 	if ( llHdl->enable[ch] == 0)
@@ -695,7 +695,7 @@ static int32 F404_Read(
 	return(ERR_SUCCESS);
 }
 
-/****************************** F404_Write ************************************
+/****************************** Z188_Write ************************************
  *
  *  Description:  Write value to device
  *
@@ -709,18 +709,18 @@ static int32 F404_Read(
  *  Output.....:  return   success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
-static int32 F404_Write( /* nodoc */
+static int32 Z188_Write( /* nodoc */
     LL_HANDLE *llHdl,
     int32 ch,
     int32 value
 )
 {
-    DBGWRT_1((DBH, "LL - F404_Write: ch=%d\n",ch));
+    DBGWRT_1((DBH, "LL - Z188_Write: ch=%d\n",ch));
 
 	return(ERR_LL_ILL_FUNC);
 }
 
-/****************************** F404_SetStat **********************************
+/****************************** Z188_SetStat **********************************
  *
  *  Description:  Set driver status
  *
@@ -734,25 +734,25 @@ static int32 F404_Write( /* nodoc */
  *                M_LL_CH_DIR          direction of curr ch       M_CH_IN
  *                M_BUF_xxx            input buffer codes         see MDIS
  *                -------------------  -------------------------  ----------
- *                F404_CH_ENABLE        enable/disable curr ch     0..1
+ *                Z188_CH_ENABLE        enable/disable curr ch     0..1
  *                                      0 = disable
  *                                      1 = enable
- *                F404_CH_GAIN          gain factor of curr ch     0..3
+ *                Z188_CH_GAIN          gain factor of curr ch     0..3
  *					                    0 = factor 1
  *                                      1 = factor 2
  *                                      2 = factor 4
  *                                      3 = factor 8
- *                                      4 = factor 16 (F404N)
+ *                                      4 = factor 16 (Z188N)
  *                                      Note: ch must be enabled
  *
- *                F404_BIPOLAR          measuring mode for all ch  0..1
+ *                Z188_BIPOLAR          measuring mode for all ch  0..1
  *                                      0 = unipolar
  *                                      1 = bipolar
  *                                      Note: ch must be enabled
- *                F404_EXT_TRIG         defines the sampling mode  0..1
+ *                Z188_EXT_TRIG         defines the sampling mode  0..1
  *                                      0 = internal trigger
  *                                      1 = external trigger
- *                F404_CALIBRATE        start calibration          -
+ *                Z188_CALIBRATE        start calibration          -
  *                                      Note: interrupt must be
  *                                            disabled
  *
@@ -766,7 +766,7 @@ static int32 F404_Write( /* nodoc */
  *  Output.....:  return         success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
-static int32 F404_SetStat(
+static int32 Z188_SetStat(
     LL_HANDLE *llHdl,
     int32  code,
     int32  ch,
@@ -778,7 +778,7 @@ static int32 F404_SetStat(
 
 	int32 error = ERR_SUCCESS;
 
-    DBGWRT_1((DBH, "LL - F404_SetStat: ch=%d code=0x%04x value=0x%x\n",
+    DBGWRT_1((DBH, "LL - Z188_SetStat: ch=%d code=0x%04x value=0x%x\n",
 			  ch,code,value));
 
     switch(code) {
@@ -810,7 +810,7 @@ static int32 F404_SetStat(
         /*--------------------------+
 		  | channel enable            |
 		  +--------------------------*/
-	case F404_CH_ENABLE:
+	case Z188_CH_ENABLE:
 		if ( (value < 0) || (value > 1) ) {
 			error = ERR_LL_ILL_PARAM;
 			break;
@@ -826,7 +826,7 @@ static int32 F404_SetStat(
         /*--------------------------+
 		  |  channel gain             |
 		  +--------------------------*/
-	case F404_CH_GAIN:
+	case Z188_CH_GAIN:
 		if ( (value < 0x00) || (value > 0x04 /*(M36N) was: 0x03 */) ) {
 			error = ERR_LL_ILL_PARAM;
 			break;
@@ -844,7 +844,7 @@ static int32 F404_SetStat(
         /*--------------------------+
 		  |  measuring mode         |
 		  +-------------------------*/
-	case F404_BIPOLAR:
+	case Z188_BIPOLAR:
 		if ( (value < 0x00) || (value > 0x01) ) {
 			error = ERR_LL_ILL_PARAM;
 			break;
@@ -857,7 +857,7 @@ static int32 F404_SetStat(
         /*--------------------------+
 		  | trigger mode (int/ext)  |
 		  +--------------------------*/
-	case F404_EXT_TRIG:
+	case Z188_EXT_TRIG:
 		if ( (value < 0) || (value > 1) ) {
 			error = ERR_LL_ILL_PARAM;
 			break;
@@ -873,24 +873,24 @@ static int32 F404_SetStat(
 		/*-------------------------+
 		  |  start calibration      |
 		  +-------------------------*/
-	case F404_CALIBRATE:
+	case Z188_CALIBRATE:
 		error = ERR_LL_ILL_FUNC;
 		break;
 
 /* --- Flash Functions for internal use only! --- */
 
 		/*-------------------------+
-		  | F404N Erase Calib Data   |
+		  | Z188N Erase Calib Data   |
 		  +-------------------------*/
 
-	case F404_FLASH_ERASE:
+	case Z188_FLASH_ERASE:
 		error = ERR_LL_ILL_FUNC;
 		break;
 
 		/*--------------------------+
-		  | F404N Flash Block Write  |
+		  | Z188N Flash Block Write  |
 		  +-------------------------*/
-	case F404_BLK_FLASH:
+	case Z188_BLK_FLASH:
 		error = ERR_LL_ILL_FUNC;
 		break;
 
@@ -907,7 +907,7 @@ static int32 F404_SetStat(
 	return(error);
 }
 
-/****************************** F404_GetStat **********************************
+/****************************** Z188_GetStat **********************************
  *
  *  Description:  Get driver status
  *
@@ -927,25 +927,25 @@ static int32 F404_SetStat(
  *                M_MK_BLK_REV_ID      ident function table ptr   -
  *                M_BUF_xxx            input buffer codes         see MDIS
  *                -------------------  -------------------------  ----------
- *                F404_CH_ENABLE        enable/disable curr ch     0..1
+ *                Z188_CH_ENABLE        enable/disable curr ch     0..1
  *                                      0 = disable
  *                                      1 = enable
- *                F404_CH_GAIN          gain factor of curr ch     0..3
+ *                Z188_CH_GAIN          gain factor of curr ch     0..3
  *					                    0 = factor 1
  *                                      1 = factor 2
  *                                      2 = factor 4
  *                                      3 = factor 8
- *                F404_BIPOLAR          measuring mode for all ch  0..1
+ *                Z188_BIPOLAR          measuring mode for all ch  0..1
  *                                      0 = unipolar
  *                                      1 = bipolar
- *                F404_EXT_TRIG         defines sampling mode      0..1
+ *                Z188_EXT_TRIG         defines sampling mode      0..1
  *                                      0 = internal trigger
  *                                      1 = external trigger
- *                F404_EXT_PIN          state of binary input      0..1
- *                F404_SINGLE_ENDED     def. type of input adapter 0..1
+ *                Z188_EXT_PIN          state of binary input      0..1
+ *                Z188_SINGLE_ENDED     def. type of input adapter 0..1
  *                                      0 = differential
  *                                      1 = single ended
- *                F404_NBR_ENABLED_CH    number of enabled channels 0..16
+ *                Z188_NBR_ENABLED_CH    number of enabled channels 0..16
  *
  *---------------------------------------------------------------------------
  *  Input......:  llHdl           ll handle
@@ -959,7 +959,7 @@ static int32 F404_SetStat(
  *                (*) = for block status codes
  *  Globals....:  ---
  ****************************************************************************/
-static int32 F404_GetStat(
+static int32 Z188_GetStat(
     LL_HANDLE *llHdl,
     int32  code,
     int32  ch,
@@ -975,7 +975,7 @@ static int32 F404_GetStat(
 	int32 error = ERR_SUCCESS;
 	u_int32 lo=0, hi=0, lo1=0, hi1=0, lo2=0, hi2=0, longval=0;
 
-    DBGWRT_1((DBH, "LL - F404_GetStat: ch=%d code=0x%04x\n",  ch,code));
+    DBGWRT_1((DBH, "LL - Z188_GetStat: ch=%d code=0x%04x\n",  ch,code));
 
     switch(code)
     {
@@ -1053,50 +1053,50 @@ static int32 F404_GetStat(
         /*--------------------------+
 		  | channel enable            |
 		  +--------------------------*/
-	case F404_CH_ENABLE:
+	case Z188_CH_ENABLE:
 		*valueP = (int32)llHdl->enable[ch];
 		break;
         /*--------------------------+
 		  |  channel gain             |
 		  +--------------------------*/
-	case F404_CH_GAIN:
+	case Z188_CH_GAIN:
 		*valueP = (int32)llHdl->gain[ch];
 		break;
         /*--------------------------+
 		  |  measuring mode           |
 		  +--------------------------*/
-	case F404_BIPOLAR:
+	case Z188_BIPOLAR:
 		*valueP = (int32)llHdl->bipolar;
 		break;
         /*--------------------------+
 		  | trigger mode              |
 		  +--------------------------*/
-	case F404_EXT_TRIG:
+	case Z188_EXT_TRIG:
 		*valueP = (int32)llHdl->extTrig;
 		break;
         /*--------------------------+
 		  |  binary input             |
 		  +--------------------------*/
-	case F404_EXT_PIN:
+	case Z188_EXT_PIN:
 		*valueP =  ((MREAD_D16(llHdl->ma, STAT_REG) & BIN) ? 1 : 0);
 		break;
         /*--------------------------+
 		  | single ended            |
 		  +-------------------------*/
-	case F404_SINGLE_ENDED:
+	case Z188_SINGLE_ENDED:
 		*valueP = (int32)llHdl->singleEnded;
 		break;
         /*--------------------------+
 		  | number of enabled chan  |
 		  +-------------------------*/
-	case F404_NBR_ENABLED_CH:
+	case Z188_NBR_ENABLED_CH:
 		*valueP = llHdl->nbrEnabledCh;
 		break;
         /*--------------------------+
 		  | Dump Register space     |
 		  +--------------------------*/
-	case F404_REG_DUMP:
-		DBGWRT_2((DBH, "LL - F404_REG_DUMP Dump Registers:"));
+	case Z188_REG_DUMP:
+		DBGWRT_2((DBH, "LL - Z188_REG_DUMP Dump Registers:"));
 		for ( i = 0; i < 0x100; i +=2 ) {
 			if (!( i % 0x10))
 				DBGWRT_2((DBH, "\n  0x%02x ", i));
@@ -1111,14 +1111,14 @@ static int32 F404_GetStat(
 		/*-------------------------+
 		 | Flash Block Read        |
 		 +-------------------------*/
-	case F404_BLK_FLASH:
+	case Z188_BLK_FLASH:
 		error = ERR_LL_UNK_CODE;
 		break;
 
         /*--------------------------+
 		 | Get 18bit raw ADC values |
 		 +--------------------------*/
-	case F404_GET_RAWDAT:
+	case Z188_GET_RAWDAT:
 		do {
 			/*
 			 * FPGA writes the 18bit raw data Registers in swapped manner
@@ -1157,7 +1157,7 @@ static int32 F404_GetStat(
 }
 
 
-/******************************* F404_BlockRead *******************************
+/******************************* Z188_BlockRead *******************************
  *
  *  Description:  Read data block from device
  *
@@ -1188,7 +1188,7 @@ static int32 F404_GetStat(
  *
  *                The maximum size (number of words) which can be read depends
  *                on the number of enabled input channels and can be queried
- *                via the F404_NBR_ENABLED_CH getstat.
+ *                via the Z188_NBR_ENABLED_CH getstat.
  *
  *                If no input channel is enabled ERR_LL_READ is returned.
  *
@@ -1197,7 +1197,7 @@ static int32 F404_GetStat(
  *                For all other modes, the function copies requested number
  *                of bytes from the input buffer to the given data buffer.
  *                The interrupt of the carrier board must be enabled for
- *                buffered input modes. (see also function F404_Irq)
+ *                buffered input modes. (see also function Z188_Irq)
  *
  *                For details on buffered input modes refer to the MDIS-Doc.
  *
@@ -1210,7 +1210,7 @@ static int32 F404_GetStat(
  *                return       success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
-static int32 F404_BlockRead(
+static int32 Z188_BlockRead(
      LL_HANDLE *llHdl,
      int32     ch,
      void      *buf,
@@ -1223,7 +1223,7 @@ static int32 F404_BlockRead(
 	int32 bufMode;
 	int32 error;
 
-    DBGWRT_1((DBH, "LL - F404_BlockRead: ch=%d, size=%d\n",ch,size));
+    DBGWRT_1((DBH, "LL - Z188_BlockRead: ch=%d, size=%d\n",ch,size));
 
 	/* get current buffer mode */
 	if ((error = MBUF_GetBufferMode(llHdl->bufHdl, &bufMode)))
@@ -1262,7 +1262,7 @@ static int32 F404_BlockRead(
 	return(ERR_SUCCESS);
 }
 
-/****************************** F404_BlockWrite *******************************
+/****************************** Z188_BlockWrite *******************************
  *
  *  Description:  Write data block to device
  *
@@ -1278,7 +1278,7 @@ static int32 F404_BlockRead(
  *                return       success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
-static int32 F404_BlockWrite(	/* nodoc */
+static int32 Z188_BlockWrite(	/* nodoc */
      LL_HANDLE *llHdl,
      int32     ch,
      void      *buf,
@@ -1286,7 +1286,7 @@ static int32 F404_BlockWrite(	/* nodoc */
      int32     *nbrWrBytesP
 )
 {
-    DBGWRT_1((DBH, "LL - F404_BlockWrite: ch=%d, size=%d\n",ch,size));
+    DBGWRT_1((DBH, "LL - Z188_BlockWrite: ch=%d, size=%d\n",ch,size));
 
 	/* return nr of written bytes */
 	*nbrWrBytesP = 0;
@@ -1295,7 +1295,7 @@ static int32 F404_BlockWrite(	/* nodoc */
 }
 
 
-/****************************** F404_Irq *************************************
+/****************************** Z188_Irq *************************************
  *
  *  Description:  Interrupt service routine
  *
@@ -1324,7 +1324,7 @@ static int32 F404_BlockWrite(	/* nodoc */
  *                         LL_IRQ_UNKNOWN   unknown
  *  Globals....:  ---
  ****************************************************************************/
-static int32 F404_Irq(
+static int32 Z188_Irq(
    LL_HANDLE *llHdl
 )
 {
@@ -1334,7 +1334,7 @@ static int32 F404_Irq(
 	int32	nbrRdCh = 0;	/* number of read channels */
 	int32	nbrOfBlocks;
 
-    IDBGWRT_1((DBH, "LL - F404_Irq:\n"));
+    IDBGWRT_1((DBH, "LL - Z188_Irq:\n"));
 
 	/*----------------------+
 	| reset irq             |
@@ -1369,11 +1369,11 @@ static int32 F404_Irq(
 											nbrOfBlocks, &got)) == 0 ) {
 						/* wrap around failed */
 						IDBGWRT_ERR((DBH,
-									 "*** LL - F404_Irq: wrap around failed\n"));
+									 "*** LL - Z188_Irq: wrap around failed\n"));
 						break;
 					}
 					IDBGWRT_3((DBH,
-						 "LL - F404_Irq: nbrRdCh=%d, nbrOfBlocks=%d, got=%d\n",
+						 "LL - Z188_Irq: nbrRdCh=%d, nbrOfBlocks=%d, got=%d\n",
 						nbrRdCh,nbrOfBlocks,got));
 				}
 			}
@@ -1386,7 +1386,7 @@ static int32 F404_Irq(
 	return(LL_IRQ_UNKNOWN);		/* say: unknown */
 }
 
-/****************************** F404_Info ************************************
+/****************************** Z188_Info ************************************
  *
  *  Description:  Get information about hardware and driver requirements.
  *
@@ -1424,7 +1424,7 @@ static int32 F404_Irq(
  *  Output.....:  return       success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
-static int32 F404_Info(
+static int32 Z188_Info(
    int32  infoType,
    ...
 )
@@ -1522,7 +1522,7 @@ static int32 F404_Info(
  ****************************************************************************/
 static char* Ident( void )
 {
-    return( "F404 - F404 low level driver: $Id: m36_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $" );
+    return( "Z188 - Z188 low level driver: $Id: m36_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $" );
 }
 
 /********************************* Cleanup **********************************
@@ -1587,7 +1587,7 @@ static void InitAllChan(	/* nodoc */
 	u_int16 currDat;	/* current data element */
 	u_int16 prevDat;	/* previous data element */
 
-    DBGWRT_1((DBH, "LL - F404: InitAllChan\n"));
+    DBGWRT_1((DBH, "LL - Z188: InitAllChan\n"));
 
 	/* beginn with first data element */
 	prevDat = (int16)llHdl->nbrEnabledCh - 1;
@@ -1632,7 +1632,7 @@ static void ConfigChan(	/* nodoc */
 {
 	u_int16 cfg;		/* config data */
 
-    DBGWRT_1((DBH, "LL - F404: ConfigChan\n"));
+    DBGWRT_1((DBH, "LL - Z188: ConfigChan\n"));
 
 	/* set config register for the channel */
 	cfg = (u_int16)(llHdl->bipolar  << 7) |
