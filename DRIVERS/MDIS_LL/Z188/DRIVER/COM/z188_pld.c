@@ -20,7 +20,7 @@
 static const char RCSid[]="$Id: m36_pld.c,v 1.1 1998/11/17 10:04:07 Schmidt Exp $";
 
 #include <MEN/men_typs.h>   /* system dependend definitions   */
-#include "m36_pld.h"		/* local prototypes */
+#include "z188_pld.h"		/* local prototypes */
 
 /* M36_PldIdent: return ident string */
 char* M36_PldIdent( void )

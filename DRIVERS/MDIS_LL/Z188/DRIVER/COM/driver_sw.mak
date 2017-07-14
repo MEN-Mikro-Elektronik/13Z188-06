@@ -23,7 +23,7 @@
 #   (c) Copyright 2002 by MEN mikro elektronik GmbH, Nuernberg, Germany
 #*****************************************************************************
 
-MAK_NAME=m36_sw
+MAK_NAME=z188_sw
 
 MAK_SWITCH=$(SW_PREFIX)MAC_MEM_MAPPED \
 		   $(SW_PREFIX)MAC_BYTESWAP \
@@ -37,7 +37,7 @@ MAK_LIBS=$(LIB_PREFIX)$(MEN_LIB_DIR)/desc$(LIB_SUFFIX)		\
          $(LIB_PREFIX)$(MEN_LIB_DIR)/dbg$(LIB_SUFFIX) 
 
 
-MAK_INCL=$(MEN_MOD_DIR)/m36_pld.h     \
+MAK_INCL=$(MEN_MOD_DIR)/z188_pld.h    \
 		 $(MEN_INC_DIR)/m36_drv.h     \
          $(MEN_INC_DIR)/men_typs.h    \
          $(MEN_INC_DIR)/oss.h         \
@@ -52,8 +52,8 @@ MAK_INCL=$(MEN_MOD_DIR)/m36_pld.h     \
          $(MEN_INC_DIR)/ll_entry.h    \
          $(MEN_INC_DIR)/dbg.h    \
 
-MAK_INP1=m36_drv$(INP_SUFFIX)
-MAK_INP2=m36_pld$(INP_SUFFIX)
+MAK_INP1=z188_drv$(INP_SUFFIX)
+MAK_INP2=z188_pld$(INP_SUFFIX)
 
 MAK_INP=$(MAK_INP1) $(MAK_INP2)
 

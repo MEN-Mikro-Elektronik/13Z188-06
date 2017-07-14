@@ -21,7 +21,7 @@
 #   (c) Copyright 1998 by MEN mikro elektronik GmbH, Nuernberg, Germany
 #*****************************************************************************
 
-MAK_NAME=m36_read
+MAK_NAME=z188_read
 
 MAK_LIBS=$(LIB_PREFIX)$(MEN_LIB_DIR)/mdis_api$(LIB_SUFFIX)    \
          $(LIB_PREFIX)$(MEN_LIB_DIR)/usr_oss$(LIB_SUFFIX)     \
@@ -33,6 +33,6 @@ MAK_INCL=$(MEN_INC_DIR)/m36_drv.h     \
          $(MEN_INC_DIR)/usr_oss.h     \
          $(MEN_INC_DIR)/usr_utl.h     \
 
-MAK_INP1=m36_read$(INP_SUFFIX)
+MAK_INP1=z188_read$(INP_SUFFIX)
 
 MAK_INP=$(MAK_INP1)

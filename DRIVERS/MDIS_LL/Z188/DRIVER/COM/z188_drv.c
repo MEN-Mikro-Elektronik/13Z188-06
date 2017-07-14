@@ -128,7 +128,7 @@ static const char RCSid[]="$Id: m36_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $";
 
 #include <MEN/ll_defs.h>    /* low level driver definitions   */
 
-#include "m36_pld.h"		/* PLD ident/data prototypes      */
+#include "z188_pld.h"       /* PLD ident/data prototypes      */
 
 /*-----------------------------------------+
 |  DEFINES                                 |

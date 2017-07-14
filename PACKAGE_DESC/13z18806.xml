@@ -1,29 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- edited with XMLSPY v5 rel. 4 U (http://www.xmlspy.com) by Klaus Popp (MEN Mikro Elektronik GmbH) -->
 <package xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="packagedesc.xsd">
-	<name>13m03606</name>
-	<description>MDIS5 driver package for MEN M36 M-Module</description>
+	<name>13z18806</name>
+	<description>MDIS5 driver package for MEN 16Z188 IP core</description>
 	<date>2016-07-14</date>
-	<revision>2.4</revision>
-	<docroot>DRIVERS/MDIS_LL/M036/DOC/main.html</docroot>
+	<revision>1.0</revision>
+	<docroot>DRIVERS/MDIS_LL/Z188/DOC/main.html</docroot>
 	<modellist>
 		<model>
-			<hwname>M36</hwname>
-			<description>8 or 16 x 16 Bit Analog Inputs</description>
+			<hwname>16Z188_ADC</hwname>
+			<description>4 or 8 x 14 Bit Analog Inputs</description>
+			<devnameprefix>ADC</devnameprefix>
 			<devtype>MDIS</devtype>
+			<busif>ChameleonBus</busif>
 			<autoid>
-				<mmoduleid>0x53460024</mmoduleid>
+				<chamv2id>0xbc</chamv2id>
 			</autoid>
-			<busif>M-Module</busif>
-		</model>
-		<model>
-			<hwname>M36N</hwname>
-			<description>8 or 16 x 16 Bit Analog Inputs new module</description>
-			<devtype>MDIS</devtype>
-			<autoid>
-				<mmoduleid>0x53467d24</mmoduleid>
-			</autoid>
-			<busif>M-Module</busif>
 		</model>
 	</modellist>
 	<settinglist>
@@ -219,34 +211,28 @@
 	</settinglist>
 	<swmodulelist>
 		<swmodule>
-			<name>m36</name>
-			<description>Driver for M36</description>
+			<name>z188</name>
+			<description>Driver for Z188</description>
 			<type>Low Level Driver</type>
-			<makefilepath>M036/DRIVER/COM/driver.mak</makefilepath>
+			<makefilepath>Z188/DRIVER/COM/driver.mak</makefilepath>
 		</swmodule>
 		<swmodule>
-			<name>m36_simp</name>
+			<name>z188_simp</name>
 			<description>Simple example program for the driver</description>
 			<type>Driver Specific Tool</type>
-			<makefilepath>M036/EXAMPLE/M36_SIMP/COM/program.mak</makefilepath>
-		</swmodule>
-		<swmodule internal="true">
-			<name>m36_test</name>
-			<description>Simple M36 test program</description>
-			<type>Driver Specific Tool</type>
-			<makefilepath>M036/TEST/M36_TEST/COM/program.mak</makefilepath>
+			<makefilepath>Z188/EXAMPLE/Z188_SIMP/COM/program.mak</makefilepath>
 		</swmodule>
 		<swmodule>
-			<name>m36_blkread</name>
-			<description>Config and read M36 channels, blockwise</description>
+			<name>z188_blkread</name>
+			<description>Config and read Z188 channels, blockwise</description>
 			<type>Driver Specific Tool</type>
-			<makefilepath>M036/TOOLS/M36_BLKREAD/COM/program.mak</makefilepath>
+			<makefilepath>Z188/TOOLS/Z188_BLKREAD/COM/program.mak</makefilepath>
 		</swmodule>
 		<swmodule>
-			<name>m36_read</name>
-			<description>Configure and read M36 input channel</description>
+			<name>z188_read</name>
+			<description>Configure and read Z188 input channel</description>
 			<type>Driver Specific Tool</type>
-			<makefilepath>M036/TOOLS/M36_READ/COM/program.mak</makefilepath>
+			<makefilepath>Z188/TOOLS/Z188_READ/COM/program.mak</makefilepath>
 		</swmodule>
 	</swmodulelist>
 </package>
