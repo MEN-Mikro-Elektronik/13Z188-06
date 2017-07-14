@@ -85,7 +85,8 @@ men@snyobs:/home/code/13Z188-06$
 ===> (patch in JT/m36-1.10-1.11-patch)
 ===> Therefore I will get all revisions from that file from 13f404 repo (incl.
 ===> the file versions that were found at other places) and first apply
-===> that m036 patch to them.
+===> that m036 patch to them. For 0{2..7}* it was a bit tricky:
+men@snyobs:/home/code/13Z188-06/JT$ for x in 0{2..7}* ; do sed -e 's/M36/F404/g' -e 's/or_64P /or_64P/g' m36-1.10-1.11-patch | patch $x || mv $x.rej $x.rej-1; cat filehist-patch | patch $x; done
 ===> Additionally I re-add the history section of m036 (file filehist-patch)
 ===>
 ===>

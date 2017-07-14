@@ -4,8 +4,8 @@
  *      Project: M36 module driver (MDIS V4.x)
  *
  *       Author: ds
- *        $Date: 2009/09/23 17:48:21 $
- *    $Revision: 1.10 $
+ *        $Date: 2010/09/21 17:47:59 $
+ *    $Revision: 1.11 $
  *
  *  Description: Low level driver for M36 modules
  *
@@ -63,13 +63,55 @@
  *
  *-------------------------------[ History ]---------------------------------
  *
- * $Log: f404_drv.c,v $
+ * $Log: m36_drv.c,v $
+ * Revision 1.11  2010/09/21 17:47:59  ts
+ * R: channel and code mismatch in Prototype declaration of GetStat/SetStat
+ * M: corrected copy/paste error
+ *
+ * Revision 1.10  2009/09/23 17:48:21  MRoth
+ * R: Porting to MDIS5 (according porting guide rev. 0.7)
+ * M: a) added support for 64bit (Set/GetStat prototypes, m_read calls)
+ *    b) added casts to avoid compiler warnings
+ *    c) put all MACCESS macros conditionals in brackets
+ *
+ * Revision 1.9  2008/01/10 14:54:12  ts
+ * load PLD only if module is M36, not on M36N
+ * Cosmetics, comments added.
+ *
+ * Revision 1.8  2007/12/10 14:42:51  ts
+ * Flash routines for Calibration added
+ * support M36 and M36N mod ids
+ *
+ * Revision 1.7  2004/04/15 12:19:47  cs
+ * Minor modifications for MDIS4/2004 conformity
+ *       some typecasts for win2k compliance
+ *
+ * Revision 1.6  2002/07/25 16:12:07  DSchmidt
+ * Calibrate(): added timeout to prevent deadlook if a M36 module doesn't work
+ *
+ * Revision 1.5  2002/06/13 13:59:52  kp
+ * support swapped variant
+ * all symbols now static (except GetEntry)
+ *
+ * Revision 1.4  1998/11/26 16:18:22  Schmidt
+ * M36_Init : descriptor entry SAMPLE_ALL added
+ * M36_Irq  : performance improved
+ *
+ * Revision 1.3  1998/11/18 14:43:06  see
+ * missing MBUF_Ident and M36_PldIdent added to idFuncTbl
+ *
+ * Revision 1.2  1998/11/18 11:40:10  see
+ * M36_GetStat: M36_EXT_PIN: value assignment caused compiler error
+ * PldLoad: return(0) removed, since void
+ *
+ * Revision 1.1  1998/11/17 10:04:03  Schmidt
+ * Added by mcvs
  *
  *---------------------------------------------------------------------------
- * (c) Copyright 2013 by MEN mikro elektronik GmbH, Nuremberg, Germany
+ * (c) Copyright 1998 by MEN mikro elektronik GmbH, Nuernberg, Germany
  ****************************************************************************/
 
-static const char RCSid[]="$Id: m36_drv.c,v 1.10 2009/09/23 17:48:21 MRoth Exp $";
+static const char RCSid[]="$Id: m36_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $";
 
 #define _NO_LL_HANDLE		/* ll_defs.h: don't define LL_HANDLE struct */
 
@@ -201,9 +243,9 @@ static int32 F404_Init(DESC_SPEC *descSpec, OSS_HANDLE *osHdl,
 static int32 F404_Exit(LL_HANDLE **llHdlP );
 static int32 F404_Read(LL_HANDLE *llHdl, int32 ch, int32 *value);
 static int32 F404_Write(LL_HANDLE *llHdl, int32 ch, int32 value);
-static int32 F404_SetStat(LL_HANDLE *llHdl,int32 ch, int32 code,
+static int32 F404_SetStat(LL_HANDLE *llHdl,int32 code, int32 ch,
 							INT32_OR_64 value32_or_64);
-static int32 F404_GetStat(LL_HANDLE *llHdl, int32 ch, int32 code,
+static int32 F404_GetStat(LL_HANDLE *llHdl, int32 code, int32 ch,
 							INT32_OR_64 *value32_or_64P);
 static int32 F404_BlockRead(LL_HANDLE *llHdl, int32 ch, void *buf, int32 size,
 							int32 *nbrRdBytesP);
@@ -1418,7 +1460,7 @@ static int32 F404_Info(
  ****************************************************************************/
 static char* Ident( void )
 {
-    return( "F404 - F404 low level driver: $Id: m36_drv.c,v 1.10 2009/09/23 17:48:21 MRoth Exp $" );
+    return( "F404 - F404 low level driver: $Id: m36_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $" );
 }
 
 /********************************* Cleanup **********************************
