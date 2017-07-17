@@ -116,6 +116,17 @@ grep -o 'M.\?36_[^[:space:](*,]*' /opt/menlinux/INCLUDE/COM/MEN/m36_drv.h | sort
 grep -oh 'M.\?36_[^[:space:]()*,;:\\]*' JT/0* | sort -u | while read a; do grep -q "^$a\$" JT/M36_Symbols_from_m36_drv.h || echo $a; done > JT/M36_Symbols_not_in_m36_drv.h 
 for a in `cat JT/M36_Symbols_from_m36_drv.h`; do z=${a/M36/Z188}; sed -i "s=$z=$a=g" JT/0*; done
 
+===> Now we may look for left M36 Symbols not in m36_drv.h and change them. There are
+===> some of them in the history comment at the top of the file. To change them would
+===> be wrong. But otoh this history is rarly relevant. So I remove that history log.
+
+sed -i 64,109d JT/0{2..7}*
+sed -i s/M36_Init/Z188_Init/ JT/0{2..7}*
+
+===> Finally replace all occurencies of m36_drv.c
+
+sed -i s/m36_drv.c/z188_drv.c/ JT/0{2..7}*
+
 ===>
 ===> All other changes are adaptions to differing file names
 ===> or changes in file history comments
