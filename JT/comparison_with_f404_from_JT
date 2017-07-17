@@ -107,6 +107,15 @@ cp /archlinux/opt/menlinux/DRIVERS/MDIS_LL/Z188/DRIVER/COM/f404_drv.c 	JT/07__MD
 
 sed -i 's/F404/Z188/g' JT/0*
 
+===> For now we want keep including m36_drv.h. Therefore we must assure to keep all its symbols.
+===> JT replaced to many Symbols in the beginnig and reverted that later.
+===> I want to avoid that, so that (hopefully) all revisions will build successfully
+===> Therefore. I will right now restore all Symbols from m36_drv.h that were already changed.
+
+grep -o 'M.\?36_[^[:space:](*,]*' /opt/menlinux/INCLUDE/COM/MEN/m36_drv.h | sort -u > JT/M36_Symbols_from_m36_drv.h 
+grep -oh 'M.\?36_[^[:space:]()*,;:\\]*' JT/0* | sort -u | while read a; do grep -q "^$a\$" JT/M36_Symbols_from_m36_drv.h || echo $a; done > JT/M36_Symbols_not_in_m36_drv.h 
+for a in `cat JT/M36_Symbols_from_m36_drv.h`; do z=${a/M36/Z188}; sed -i "s=$z=$a=g" JT/0*; done
+
 ===>
 ===> All other changes are adaptions to differing file names
 ===> or changes in file history comments

@@ -255,7 +255,7 @@ static int32 Z188_Irq(LL_HANDLE *llHdl );
 static int32 Z188_Info(int32 infoType, ... );
 
 
-/**************************** Z188_GetEntry *********************************
+/**************************** M36_GetEntry *********************************
  *
  *  Description:  Initialize drivers jump table
  *
@@ -268,9 +268,9 @@ static int32 Z188_Info(int32 infoType, ... );
     void LL_GetEntry( LL_ENTRY* drvP )
 #else
 # ifdef	MAC_BYTESWAP
-	void Z188_SW_GetEntry( LL_ENTRY*	drvP )
+	void M36_SW_GetEntry( LL_ENTRY*	drvP )
 # else
-	void Z188_GetEntry( LL_ENTRY* drvP )
+	void M36_GetEntry( LL_ENTRY* drvP )
 # endif
 #endif
 {

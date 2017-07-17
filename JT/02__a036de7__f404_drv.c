@@ -261,7 +261,7 @@ static int32 Z188_Irq(LL_HANDLE *llHdl );
 static int32 Z188_Info(int32 infoType, ... );
 
 
-/**************************** Z188_GetEntry *********************************
+/**************************** M36_GetEntry *********************************
  *
  *  Description:  Initialize drivers jump table
  *
@@ -274,9 +274,9 @@ static int32 Z188_Info(int32 infoType, ... );
     void LL_GetEntry( LL_ENTRY* drvP )
 #else
 # ifdef	MAC_BYTESWAP
-	void Z188_SW_GetEntry( LL_ENTRY*	drvP )
+	void M36_SW_GetEntry( LL_ENTRY*	drvP )
 # else
-	void Z188_GetEntry( LL_ENTRY* drvP )
+	void M36_GetEntry( LL_ENTRY* drvP )
 # endif
 #endif
 {
@@ -734,10 +734,10 @@ static int32 Z188_Write( /* nodoc */
  *                M_LL_CH_DIR          direction of curr ch       M_CH_IN
  *                M_BUF_xxx            input buffer codes         see MDIS
  *                -------------------  -------------------------  ----------
- *                Z188_CH_ENABLE        enable/disable curr ch     0..1
+ *                M36_CH_ENABLE        enable/disable curr ch     0..1
  *                                      0 = disable
  *                                      1 = enable
- *                Z188_CH_GAIN          gain factor of curr ch     0..3
+ *                M36_CH_GAIN          gain factor of curr ch     0..3
  *					                    0 = factor 1
  *                                      1 = factor 2
  *                                      2 = factor 4
@@ -745,14 +745,14 @@ static int32 Z188_Write( /* nodoc */
  *                                      4 = factor 16 (Z188N)
  *                                      Note: ch must be enabled
  *
- *                Z188_BIPOLAR          measuring mode for all ch  0..1
+ *                M36_BIPOLAR          measuring mode for all ch  0..1
  *                                      0 = unipolar
  *                                      1 = bipolar
  *                                      Note: ch must be enabled
- *                Z188_EXT_TRIG         defines the sampling mode  0..1
+ *                M36_EXT_TRIG         defines the sampling mode  0..1
  *                                      0 = internal trigger
  *                                      1 = external trigger
- *                Z188_CALIBRATE        start calibration          -
+ *                M36_CALIBRATE        start calibration          -
  *                                      Note: interrupt must be
  *                                            disabled
  *
@@ -810,7 +810,7 @@ static int32 Z188_SetStat(
         /*--------------------------+
 		  | channel enable            |
 		  +--------------------------*/
-	case Z188_CH_ENABLE:
+	case M36_CH_ENABLE:
 		if ( (value < 0) || (value > 1) ) {
 			error = ERR_LL_ILL_PARAM;
 			break;
@@ -826,7 +826,7 @@ static int32 Z188_SetStat(
         /*--------------------------+
 		  |  channel gain             |
 		  +--------------------------*/
-	case Z188_CH_GAIN:
+	case M36_CH_GAIN:
 		if ( (value < 0x00) || (value > 0x04 /*(M36N) was: 0x03 */) ) {
 			error = ERR_LL_ILL_PARAM;
 			break;
@@ -844,7 +844,7 @@ static int32 Z188_SetStat(
         /*--------------------------+
 		  |  measuring mode         |
 		  +-------------------------*/
-	case Z188_BIPOLAR:
+	case M36_BIPOLAR:
 		if ( (value < 0x00) || (value > 0x01) ) {
 			error = ERR_LL_ILL_PARAM;
 			break;
@@ -857,7 +857,7 @@ static int32 Z188_SetStat(
         /*--------------------------+
 		  | trigger mode (int/ext)  |
 		  +--------------------------*/
-	case Z188_EXT_TRIG:
+	case M36_EXT_TRIG:
 		if ( (value < 0) || (value > 1) ) {
 			error = ERR_LL_ILL_PARAM;
 			break;
@@ -873,7 +873,7 @@ static int32 Z188_SetStat(
 		/*-------------------------+
 		  |  start calibration      |
 		  +-------------------------*/
-	case Z188_CALIBRATE:
+	case M36_CALIBRATE:
 		error = ERR_LL_ILL_FUNC;
 		break;
 
@@ -883,14 +883,14 @@ static int32 Z188_SetStat(
 		  | Z188N Erase Calib Data   |
 		  +-------------------------*/
 
-	case Z188_FLASH_ERASE:
+	case M36_FLASH_ERASE:
 		error = ERR_LL_ILL_FUNC;
 		break;
 
 		/*--------------------------+
 		  | Z188N Flash Block Write  |
 		  +-------------------------*/
-	case Z188_BLK_FLASH:
+	case M36_BLK_FLASH:
 		error = ERR_LL_ILL_FUNC;
 		break;
 
@@ -927,25 +927,25 @@ static int32 Z188_SetStat(
  *                M_MK_BLK_REV_ID      ident function table ptr   -
  *                M_BUF_xxx            input buffer codes         see MDIS
  *                -------------------  -------------------------  ----------
- *                Z188_CH_ENABLE        enable/disable curr ch     0..1
+ *                M36_CH_ENABLE        enable/disable curr ch     0..1
  *                                      0 = disable
  *                                      1 = enable
- *                Z188_CH_GAIN          gain factor of curr ch     0..3
+ *                M36_CH_GAIN          gain factor of curr ch     0..3
  *					                    0 = factor 1
  *                                      1 = factor 2
  *                                      2 = factor 4
  *                                      3 = factor 8
- *                Z188_BIPOLAR          measuring mode for all ch  0..1
+ *                M36_BIPOLAR          measuring mode for all ch  0..1
  *                                      0 = unipolar
  *                                      1 = bipolar
- *                Z188_EXT_TRIG         defines sampling mode      0..1
+ *                M36_EXT_TRIG         defines sampling mode      0..1
  *                                      0 = internal trigger
  *                                      1 = external trigger
- *                Z188_EXT_PIN          state of binary input      0..1
- *                Z188_SINGLE_ENDED     def. type of input adapter 0..1
+ *                M36_EXT_PIN          state of binary input      0..1
+ *                M36_SINGLE_ENDED     def. type of input adapter 0..1
  *                                      0 = differential
  *                                      1 = single ended
- *                Z188_NBR_ENABLED_CH    number of enabled channels 0..16
+ *                M36_NBR_ENABLED_CH    number of enabled channels 0..16
  *
  *---------------------------------------------------------------------------
  *  Input......:  llHdl           ll handle
@@ -1053,50 +1053,50 @@ static int32 Z188_GetStat(
         /*--------------------------+
 		  | channel enable            |
 		  +--------------------------*/
-	case Z188_CH_ENABLE:
+	case M36_CH_ENABLE:
 		*valueP = (int32)llHdl->enable[ch];
 		break;
         /*--------------------------+
 		  |  channel gain             |
 		  +--------------------------*/
-	case Z188_CH_GAIN:
+	case M36_CH_GAIN:
 		*valueP = (int32)llHdl->gain[ch];
 		break;
         /*--------------------------+
 		  |  measuring mode           |
 		  +--------------------------*/
-	case Z188_BIPOLAR:
+	case M36_BIPOLAR:
 		*valueP = (int32)llHdl->bipolar;
 		break;
         /*--------------------------+
 		  | trigger mode              |
 		  +--------------------------*/
-	case Z188_EXT_TRIG:
+	case M36_EXT_TRIG:
 		*valueP = (int32)llHdl->extTrig;
 		break;
         /*--------------------------+
 		  |  binary input             |
 		  +--------------------------*/
-	case Z188_EXT_PIN:
+	case M36_EXT_PIN:
 		*valueP =  ((MREAD_D16(llHdl->ma, STAT_REG) & BIN) ? 1 : 0);
 		break;
         /*--------------------------+
 		  | single ended            |
 		  +-------------------------*/
-	case Z188_SINGLE_ENDED:
+	case M36_SINGLE_ENDED:
 		*valueP = (int32)llHdl->singleEnded;
 		break;
         /*--------------------------+
 		  | number of enabled chan  |
 		  +-------------------------*/
-	case Z188_NBR_ENABLED_CH:
+	case M36_NBR_ENABLED_CH:
 		*valueP = llHdl->nbrEnabledCh;
 		break;
         /*--------------------------+
 		  | Dump Register space     |
 		  +--------------------------*/
-	case Z188_REG_DUMP:
-		DBGWRT_2((DBH, "LL - Z188_REG_DUMP Dump Registers:"));
+	case M36_REG_DUMP:
+		DBGWRT_2((DBH, "LL - M36_REG_DUMP Dump Registers:"));
 		for ( i = 0; i < 0x100; i +=2 ) {
 			if (!( i % 0x10))
 				DBGWRT_2((DBH, "\n  0x%02x ", i));
@@ -1111,14 +1111,14 @@ static int32 Z188_GetStat(
 		/*-------------------------+
 		 | Flash Block Read        |
 		 +-------------------------*/
-	case Z188_BLK_FLASH:
+	case M36_BLK_FLASH:
 		error = ERR_LL_UNK_CODE;
 		break;
 
         /*--------------------------+
 		 | Get 18bit raw ADC values |
 		 +--------------------------*/
-	case Z188_GET_RAWDAT:
+	case M36_GET_RAWDAT:
 		do {
 			/*
 			 * FPGA writes the 18bit raw data Registers in swapped manner
@@ -1188,7 +1188,7 @@ static int32 Z188_GetStat(
  *
  *                The maximum size (number of words) which can be read depends
  *                on the number of enabled input channels and can be queried
- *                via the Z188_NBR_ENABLED_CH getstat.
+ *                via the M36_NBR_ENABLED_CH getstat.
  *
  *                If no input channel is enabled ERR_LL_READ is returned.
  *
