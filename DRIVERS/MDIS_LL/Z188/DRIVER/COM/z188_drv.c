@@ -104,12 +104,19 @@ static const char RCSid[]="$Id: z188_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $";
 #define DBH					llHdl->dbgHdl
 
 /* register offsets */
-#define DATA_REG(i)	(0x00 + ((i)<<1))	/* data register    0..15 */
-#define ADR_REG(i)	(0x20 + ((i)<<1))	/* address register 0..15 */
-#define CFG_REG(i)	(0x40 + ((i)<<1))	/* config register  0..15 */
+#define DATA_REG(i)	((0x0 + (i)) & 0x00ffffff)	/* data register    0..15 */
+/* #define ADR_REG(i)	(0x20 + ((i)<<1)) */	/* address register 0..15 */
+#define CFG_REG(i)		((0x0 + (i)) & 0xff000000)	/* config register  0..15 */
 #define STAT_REG	0x60				/* status  register */
-#define CTRL_REG	0x70				/* control register */
-#define LOAD_REG	0xfe				/* FLEX load register */
+#define CTRL_REG		0x40				/* control register */
+#define TIME_BASE_REG	0x44
+#define GPO_REG			0x48
+
+#define OVR(x)			((x) & 0x1)
+#define DATA(x)			(((x) >> 2) & 0x3fffff)
+#define GPO_MASK		0x78000000
+#define GAIN_MASK		0x07000000
+
 
 /* CTRL_REG bitmask */
 #define RST		0x04	/* IRQ reset pending irq */
@@ -624,6 +631,12 @@ static int32 Z188_Exit(
  *                If the channel is not enabled an ERR_LL_READ error
  *                is returned.
  *
+ *  +---+-------------+--------------+-----+--------------+----+-------------+
+ *  |D31|   D30-D27   |    D26-D24   | D23 |    D22-D2    | D1 |       D0    |
+ *  +---+-------------+--------------+-----+--------------+----+-------------+
+ *  | - | ADC_CHx_GPO | ADC_CHx_GAIN |  -  | ADC_CHx_DATA | -  | ADC_CHx_OVR |
+ *  +---+-------------+--------------+-----+--------------+----+-------------+
+ *
  *---------------------------------------------------------------------------
  *  Input......:  llHdl    ll handle
  *                ch       current channel
@@ -637,6 +650,8 @@ static int32 Z188_Read(
     int32 *value
 )
 {
+	int32 tmp;
+	int32 ret = ERR_SUCCESS;
     DBGWRT_1((DBH, "LL - Z188_Read: ch=%d\n",ch));
 
 	/* channel disabled ? */
@@ -644,9 +659,15 @@ static int32 Z188_Read(
 		return(ERR_LL_READ);
 
 	/* read value of channel */
-	*value = MREAD_D16(llHdl->ma, llHdl->dataReg[ch]);
+	tmp = MREAD_D16(llHdl->ma, llHdl->dataReg[ch]);
 
-	return(ERR_SUCCESS);
+	/* check for overcurrent situation and return a "DEVICE SPECIFIC" error*/
+	if (OVR(tmp))
+		ret = ERR_DEV;
+
+	*value = DATA(tmp);
+
+	return(ret);
 }
 
 /****************************** Z188_Write ************************************
@@ -1556,7 +1577,7 @@ static void InitAllChan(	/* nodoc */
 			llHdl->cfgReg[ch] = CFG_REG(prevDat);
 
 			/* set address register of previous data element */
-			MWRITE_D16(llHdl->ma, ADR_REG(prevDat), currDat);
+			/* MWRITE_D16(llHdl->ma, ADR_REG(prevDat), currDat); */
 
 			/* update prevDat and currDat */
 			prevDat = currDat;
