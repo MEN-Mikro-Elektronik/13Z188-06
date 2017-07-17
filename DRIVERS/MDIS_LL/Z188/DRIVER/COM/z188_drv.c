@@ -1,6 +1,6 @@
 /*********************  P r o g r a m  -  M o d u l e ***********************
  *
- *         Name: m36_drv.c
+ *         Name: z188_drv.c
  *      Project: M36 module driver (MDIS V4.x)
  *
  *       Author: ds
@@ -23,7 +23,7 @@
  *               A global gain factor of 16 can be programmed using an on-board
  *               jumper.
  *
- *               Internal autocalibration is performed by M36_Init() and can
+ *               Internal autocalibration is performed by Z188_Init() and can
  *               also be activated by setstat call (1).
  *
  *               The measuring mode for all channels can be set to unipolar or
@@ -61,57 +61,11 @@
  *     Required: ---
  *     Switches: _ONE_NAMESPACE_PER_DRIVER_
  *
- *-------------------------------[ History ]---------------------------------
- *
- * $Log: m36_drv.c,v $
- * Revision 1.11  2010/09/21 17:47:59  ts
- * R: channel and code mismatch in Prototype declaration of GetStat/SetStat
- * M: corrected copy/paste error
- *
- * Revision 1.10  2009/09/23 17:48:21  MRoth
- * R: Porting to MDIS5 (according porting guide rev. 0.7)
- * M: a) added support for 64bit (Set/GetStat prototypes, m_read calls)
- *    b) added casts to avoid compiler warnings
- *    c) put all MACCESS macros conditionals in brackets
- *
- * Revision 1.9  2008/01/10 14:54:12  ts
- * load PLD only if module is M36, not on M36N
- * Cosmetics, comments added.
- *
- * Revision 1.8  2007/12/10 14:42:51  ts
- * Flash routines for Calibration added
- * support M36 and M36N mod ids
- *
- * Revision 1.7  2004/04/15 12:19:47  cs
- * Minor modifications for MDIS4/2004 conformity
- *       some typecasts for win2k compliance
- *
- * Revision 1.6  2002/07/25 16:12:07  DSchmidt
- * Calibrate(): added timeout to prevent deadlook if a M36 module doesn't work
- *
- * Revision 1.5  2002/06/13 13:59:52  kp
- * support swapped variant
- * all symbols now static (except GetEntry)
- *
- * Revision 1.4  1998/11/26 16:18:22  Schmidt
- * M36_Init : descriptor entry SAMPLE_ALL added
- * M36_Irq  : performance improved
- *
- * Revision 1.3  1998/11/18 14:43:06  see
- * missing MBUF_Ident and M36_PldIdent added to idFuncTbl
- *
- * Revision 1.2  1998/11/18 11:40:10  see
- * M36_GetStat: M36_EXT_PIN: value assignment caused compiler error
- * PldLoad: return(0) removed, since void
- *
- * Revision 1.1  1998/11/17 10:04:03  Schmidt
- * Added by mcvs
- *
  *---------------------------------------------------------------------------
  * (c) Copyright 1998 by MEN mikro elektronik GmbH, Nuernberg, Germany
  ****************************************************************************/
 
-static const char RCSid[]="$Id: m36_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $";
+static const char RCSid[]="$Id: z188_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $";
 
 #define _NO_LL_HANDLE		/* ll_defs.h: don't define LL_HANDLE struct */
 
@@ -243,22 +197,22 @@ static int32 Cleanup(LL_HANDLE *llHdl, int32 retCode);
 static void InitAllChan(LL_HANDLE *llHdl);
 static void ConfigChan(LL_HANDLE *llHdl, int32 ch);
 
-static int32 M36_Init(DESC_SPEC *descSpec, OSS_HANDLE *osHdl,
+static int32 Z188_Init(DESC_SPEC *descSpec, OSS_HANDLE *osHdl,
 					   MACCESS *ma, OSS_SEM_HANDLE *devSemHdl,
 					   OSS_IRQ_HANDLE *irqHdl, LL_HANDLE **llHdlP);
-static int32 M36_Exit(LL_HANDLE **llHdlP );
-static int32 M36_Read(LL_HANDLE *llHdl, int32 ch, int32 *value);
-static int32 M36_Write(LL_HANDLE *llHdl, int32 ch, int32 value);
-static int32 M36_SetStat(LL_HANDLE *llHdl,int32 code, int32 ch,
+static int32 Z188_Exit(LL_HANDLE **llHdlP );
+static int32 Z188_Read(LL_HANDLE *llHdl, int32 ch, int32 *value);
+static int32 Z188_Write(LL_HANDLE *llHdl, int32 ch, int32 value);
+static int32 Z188_SetStat(LL_HANDLE *llHdl,int32 code, int32 ch,
 							INT32_OR_64 value32_or_64);
-static int32 M36_GetStat(LL_HANDLE *llHdl, int32 code, int32 ch,
-							INT32_OR_64 *value32_or_64P );
-static int32 M36_BlockRead(LL_HANDLE *llHdl, int32 ch, void *buf, int32 size,
+static int32 Z188_GetStat(LL_HANDLE *llHdl, int32 code, int32 ch,
+							INT32_OR_64 *value32_or_64P);
+static int32 Z188_BlockRead(LL_HANDLE *llHdl, int32 ch, void *buf, int32 size,
 							int32 *nbrRdBytesP);
-static int32 M36_BlockWrite(LL_HANDLE *llHdl, int32 ch, void *buf, int32 size,
+static int32 Z188_BlockWrite(LL_HANDLE *llHdl, int32 ch, void *buf, int32 size,
 							 int32 *nbrWrBytesP);
-static int32 M36_Irq(LL_HANDLE *llHdl );
-static int32 M36_Info(int32 infoType, ... );
+static int32 Z188_Irq(LL_HANDLE *llHdl );
+static int32 Z188_Info(int32 infoType, ... );
 
 
 /**************************** M36_GetEntry *********************************
@@ -280,19 +234,19 @@ static int32 M36_Info(int32 infoType, ... );
 # endif
 #endif
 {
-    drvP->init        = M36_Init;
-    drvP->exit        = M36_Exit;
-    drvP->read        = M36_Read;
-    drvP->write       = M36_Write;
-    drvP->blockRead   = M36_BlockRead;
-    drvP->blockWrite  = M36_BlockWrite;
-    drvP->setStat     = M36_SetStat;
-    drvP->getStat     = M36_GetStat;
-    drvP->irq         = M36_Irq;
-    drvP->info        = M36_Info;
+    drvP->init        = Z188_Init;
+    drvP->exit        = Z188_Exit;
+    drvP->read        = Z188_Read;
+    drvP->write       = Z188_Write;
+    drvP->blockRead   = Z188_BlockRead;
+    drvP->blockWrite  = Z188_BlockWrite;
+    drvP->setStat     = Z188_SetStat;
+    drvP->getStat     = Z188_GetStat;
+    drvP->irq         = Z188_Irq;
+    drvP->info        = Z188_Info;
 }
 
-/******************************** M36_Init ***********************************
+/******************************** Z188_Init ***********************************
  *
  *  Description:  Allocate and return ll handle, initialize hardware
  *
@@ -387,7 +341,7 @@ static int32 M36_Info(int32 infoType, ... );
  *                return     success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
-static int32 M36_Init(
+static int32 Z188_Init(
     DESC_SPEC       *descP,
     OSS_HANDLE      *osHdl,
     MACCESS         *ma,
@@ -438,7 +392,7 @@ static int32 M36_Init(
 	DBG_MYLEVEL = OSS_DBG_DEFAULT;	/* set OS specific debug level */
 	DBGINIT((NULL,&DBH));
 
-    DBGWRT_1((DBH, "LL - M36_Init\n"));
+    DBGWRT_1((DBH, "LL - Z188_Init\n"));
 
     /*------------------------------+
     |  scan descriptor              |
@@ -596,13 +550,13 @@ static int32 M36_Init(
 
 		if (modIdMagic != MOD_ID_MAGIC) {
 			DBGWRT_ERR((DBH,
-						" *** M36_Init: illegal magic=0x%04x\n",modIdMagic));
+						" *** Z188_Init: illegal magic=0x%04x\n",modIdMagic));
 			error = ERR_LL_ILL_ID;
 			return( Cleanup(llHdl,error) );
 		}
 
 		if ((modId != MOD_ID_M36) && (modId != MOD_ID_M36N)) {
-			DBGWRT_ERR((DBH," *** M36_Init: illegal id=%d\n",modId));
+			DBGWRT_ERR((DBH," *** Z188_Init: illegal id=%d\n",modId));
 			error = ERR_LL_ILL_ID;
 			return( Cleanup(llHdl,error) );
 		}
@@ -612,7 +566,7 @@ static int32 M36_Init(
 
 	}
 
-    DBGWRT_1((DBH, " M36_Init: driver build %s %s\n", __DATE__, __TIME__ ));
+    DBGWRT_1((DBH, " Z188_Init: driver build %s %s\n", __DATE__, __TIME__ ));
 
     /*------------------------------+
     |  init hardware                |
@@ -628,7 +582,7 @@ static int32 M36_Init(
 
 
 
-/****************************** M36_Exit *************************************
+/****************************** Z188_Exit *************************************
  *
  *  Description:  De-initialize hardware and cleanup memory
  *
@@ -639,14 +593,14 @@ static int32 M36_Init(
  *  Output.....:  return    success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
-static int32 M36_Exit(
+static int32 Z188_Exit(
    LL_HANDLE    **llHdlP
 )
 {
     LL_HANDLE *llHdl = *llHdlP;
 	int32 error = 0;
 
-    DBGWRT_1((DBH, "LL - M36_Exit\n"));
+    DBGWRT_1((DBH, "LL - Z188_Exit\n"));
 
     /*------------------------------+
     |  de-init hardware             |
@@ -661,7 +615,7 @@ static int32 M36_Exit(
 	return(error);
 }
 
-/****************************** M36_Read *************************************
+/****************************** Z188_Read *************************************
  *
  *  Description:  Reads value from device
  *
@@ -677,13 +631,13 @@ static int32 M36_Exit(
  *                return   success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
-static int32 M36_Read(
+static int32 Z188_Read(
     LL_HANDLE *llHdl,
     int32 ch,
     int32 *value
 )
 {
-    DBGWRT_1((DBH, "LL - M36_Read: ch=%d\n",ch));
+    DBGWRT_1((DBH, "LL - Z188_Read: ch=%d\n",ch));
 
 	/* channel disabled ? */
 	if ( llHdl->enable[ch] == 0)
@@ -695,7 +649,7 @@ static int32 M36_Read(
 	return(ERR_SUCCESS);
 }
 
-/****************************** M36_Write ************************************
+/****************************** Z188_Write ************************************
  *
  *  Description:  Write value to device
  *
@@ -709,18 +663,18 @@ static int32 M36_Read(
  *  Output.....:  return   success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
-static int32 M36_Write( /* nodoc */
+static int32 Z188_Write( /* nodoc */
     LL_HANDLE *llHdl,
     int32 ch,
     int32 value
 )
 {
-    DBGWRT_1((DBH, "LL - M36_Write: ch=%d\n",ch));
+    DBGWRT_1((DBH, "LL - Z188_Write: ch=%d\n",ch));
 
 	return(ERR_LL_ILL_FUNC);
 }
 
-/****************************** M36_SetStat **********************************
+/****************************** Z188_SetStat **********************************
  *
  *  Description:  Set driver status
  *
@@ -742,7 +696,7 @@ static int32 M36_Write( /* nodoc */
  *                                      1 = factor 2
  *                                      2 = factor 4
  *                                      3 = factor 8
- *                                      4 = factor 16 (M36N)
+ *                                      4 = factor 16 (Z188N)
  *                                      Note: ch must be enabled
  *
  *                M36_BIPOLAR          measuring mode for all ch  0..1
@@ -766,7 +720,7 @@ static int32 M36_Write( /* nodoc */
  *  Output.....:  return         success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
-static int32 M36_SetStat(
+static int32 Z188_SetStat(
     LL_HANDLE *llHdl,
     int32  code,
     int32  ch,
@@ -778,7 +732,7 @@ static int32 M36_SetStat(
 
 	int32 error = ERR_SUCCESS;
 
-    DBGWRT_1((DBH, "LL - M36_SetStat: ch=%d code=0x%04x value=0x%x\n",
+    DBGWRT_1((DBH, "LL - Z188_SetStat: ch=%d code=0x%04x value=0x%x\n",
 			  ch,code,value));
 
     switch(code) {
@@ -880,7 +834,7 @@ static int32 M36_SetStat(
 /* --- Flash Functions for internal use only! --- */
 
 		/*-------------------------+
-		  | M36N Erase Calib Data   |
+		  | Z188N Erase Calib Data   |
 		  +-------------------------*/
 
 	case M36_FLASH_ERASE:
@@ -888,7 +842,7 @@ static int32 M36_SetStat(
 		break;
 
 		/*--------------------------+
-		  | M36N Flash Block Write  |
+		  | Z188N Flash Block Write  |
 		  +-------------------------*/
 	case M36_BLK_FLASH:
 		error = ERR_LL_ILL_FUNC;
@@ -907,7 +861,7 @@ static int32 M36_SetStat(
 	return(error);
 }
 
-/****************************** M36_GetStat **********************************
+/****************************** Z188_GetStat **********************************
  *
  *  Description:  Get driver status
  *
@@ -959,7 +913,7 @@ static int32 M36_SetStat(
  *                (*) = for block status codes
  *  Globals....:  ---
  ****************************************************************************/
-static int32 M36_GetStat(
+static int32 Z188_GetStat(
     LL_HANDLE *llHdl,
     int32  code,
     int32  ch,
@@ -975,7 +929,7 @@ static int32 M36_GetStat(
 	int32 error = ERR_SUCCESS;
 	u_int32 lo=0, hi=0, lo1=0, hi1=0, lo2=0, hi2=0, longval=0;
 
-    DBGWRT_1((DBH, "LL - M36_GetStat: ch=%d code=0x%04x\n",  ch,code));
+    DBGWRT_1((DBH, "LL - Z188_GetStat: ch=%d code=0x%04x\n",  ch,code));
 
     switch(code)
     {
@@ -1157,7 +1111,7 @@ static int32 M36_GetStat(
 }
 
 
-/******************************* M36_BlockRead *******************************
+/******************************* Z188_BlockRead *******************************
  *
  *  Description:  Read data block from device
  *
@@ -1197,7 +1151,7 @@ static int32 M36_GetStat(
  *                For all other modes, the function copies requested number
  *                of bytes from the input buffer to the given data buffer.
  *                The interrupt of the carrier board must be enabled for
- *                buffered input modes. (see also function M36_Irq)
+ *                buffered input modes. (see also function Z188_Irq)
  *
  *                For details on buffered input modes refer to the MDIS-Doc.
  *
@@ -1210,7 +1164,7 @@ static int32 M36_GetStat(
  *                return       success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
-static int32 M36_BlockRead(
+static int32 Z188_BlockRead(
      LL_HANDLE *llHdl,
      int32     ch,
      void      *buf,
@@ -1223,7 +1177,7 @@ static int32 M36_BlockRead(
 	int32 bufMode;
 	int32 error;
 
-    DBGWRT_1((DBH, "LL - M36_BlockRead: ch=%d, size=%d\n",ch,size));
+    DBGWRT_1((DBH, "LL - Z188_BlockRead: ch=%d, size=%d\n",ch,size));
 
 	/* get current buffer mode */
 	if ((error = MBUF_GetBufferMode(llHdl->bufHdl, &bufMode)))
@@ -1262,7 +1216,7 @@ static int32 M36_BlockRead(
 	return(ERR_SUCCESS);
 }
 
-/****************************** M36_BlockWrite *******************************
+/****************************** Z188_BlockWrite *******************************
  *
  *  Description:  Write data block to device
  *
@@ -1278,7 +1232,7 @@ static int32 M36_BlockRead(
  *                return       success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
-static int32 M36_BlockWrite(	/* nodoc */
+static int32 Z188_BlockWrite(	/* nodoc */
      LL_HANDLE *llHdl,
      int32     ch,
      void      *buf,
@@ -1286,7 +1240,7 @@ static int32 M36_BlockWrite(	/* nodoc */
      int32     *nbrWrBytesP
 )
 {
-    DBGWRT_1((DBH, "LL - M36_BlockWrite: ch=%d, size=%d\n",ch,size));
+    DBGWRT_1((DBH, "LL - Z188_BlockWrite: ch=%d, size=%d\n",ch,size));
 
 	/* return nr of written bytes */
 	*nbrWrBytesP = 0;
@@ -1295,7 +1249,7 @@ static int32 M36_BlockWrite(	/* nodoc */
 }
 
 
-/****************************** M36_Irq *************************************
+/****************************** Z188_Irq *************************************
  *
  *  Description:  Interrupt service routine
  *
@@ -1324,7 +1278,7 @@ static int32 M36_BlockWrite(	/* nodoc */
  *                         LL_IRQ_UNKNOWN   unknown
  *  Globals....:  ---
  ****************************************************************************/
-static int32 M36_Irq(
+static int32 Z188_Irq(
    LL_HANDLE *llHdl
 )
 {
@@ -1334,7 +1288,7 @@ static int32 M36_Irq(
 	int32	nbrRdCh = 0;	/* number of read channels */
 	int32	nbrOfBlocks;
 
-    IDBGWRT_1((DBH, "LL - M36_Irq:\n"));
+    IDBGWRT_1((DBH, "LL - Z188_Irq:\n"));
 
 	/*----------------------+
 	| reset irq             |
@@ -1369,11 +1323,11 @@ static int32 M36_Irq(
 											nbrOfBlocks, &got)) == 0 ) {
 						/* wrap around failed */
 						IDBGWRT_ERR((DBH,
-									 "*** LL - M36_Irq: wrap around failed\n"));
+									 "*** LL - Z188_Irq: wrap around failed\n"));
 						break;
 					}
 					IDBGWRT_3((DBH,
-						 "LL - M36_Irq: nbrRdCh=%d, nbrOfBlocks=%d, got=%d\n",
+						 "LL - Z188_Irq: nbrRdCh=%d, nbrOfBlocks=%d, got=%d\n",
 						nbrRdCh,nbrOfBlocks,got));
 				}
 			}
@@ -1386,7 +1340,7 @@ static int32 M36_Irq(
 	return(LL_IRQ_UNKNOWN);		/* say: unknown */
 }
 
-/****************************** M36_Info ************************************
+/****************************** Z188_Info ************************************
  *
  *  Description:  Get information about hardware and driver requirements.
  *
@@ -1424,7 +1378,7 @@ static int32 M36_Irq(
  *  Output.....:  return       success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
-static int32 M36_Info(
+static int32 Z188_Info(
    int32  infoType,
    ...
 )
@@ -1522,7 +1476,7 @@ static int32 M36_Info(
  ****************************************************************************/
 static char* Ident( void )
 {
-    return( "M36 - M36 low level driver: $Id: m36_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $" );
+    return( "Z188 - Z188 low level driver: $Id: z188_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $" );
 }
 
 /********************************* Cleanup **********************************
@@ -1587,7 +1541,7 @@ static void InitAllChan(	/* nodoc */
 	u_int16 currDat;	/* current data element */
 	u_int16 prevDat;	/* previous data element */
 
-    DBGWRT_1((DBH, "LL - M36: InitAllChan\n"));
+    DBGWRT_1((DBH, "LL - Z188: InitAllChan\n"));
 
 	/* beginn with first data element */
 	prevDat = (int16)llHdl->nbrEnabledCh - 1;
@@ -1632,7 +1586,7 @@ static void ConfigChan(	/* nodoc */
 {
 	u_int16 cfg;		/* config data */
 
-    DBGWRT_1((DBH, "LL - M36: ConfigChan\n"));
+    DBGWRT_1((DBH, "LL - Z188: ConfigChan\n"));
 
 	/* set config register for the channel */
 	cfg = (u_int16)(llHdl->bipolar  << 7) |
