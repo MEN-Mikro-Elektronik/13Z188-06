@@ -107,11 +107,10 @@ static const char RCSid[]="$Id: z188_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $";
 #define DATA_REG(i)	((0x0 + (i)) & 0x00ffffff)	/* data register    0..15 */
 /* #define ADR_REG(i)	(0x20 + ((i)<<1)) */	/* address register 0..15 */
 #define CFG_REG(i)		((0x0 + (i)) & 0xff000000)	/* config register  0..15 */
+#define STAT_REG	0x60				/* status  register */
 #define CTRL_REG		0x40				/* control register */
 #define TIME_BASE_REG	0x44
 #define GPO_REG			0x48
-
-#define STAT_REG 0x60 		/* TODO: Get rid of all occurences */
 
 #define OVR(x)			((x) & 0x1)
 #define DATA(x)			(((x) >> 2) & 0x3fffff)
