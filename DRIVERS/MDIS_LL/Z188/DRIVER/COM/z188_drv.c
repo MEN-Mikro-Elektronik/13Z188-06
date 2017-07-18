@@ -113,7 +113,6 @@ static const char RCSid[]="$Id: z188_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $";
 #define GPO_REG			0x48
 
 #define OVR(x)			((x) & 0x1)
-#define DATA(x)			(((x) >> 2) & 0x3fffff)
 #define GPO_MASK		0x78000000
 #define GAIN_MASK		0x07000000
 
@@ -652,20 +651,29 @@ static int32 Z188_Read(
 {
 	int32 tmp;
 	int32 ret = ERR_SUCCESS;
-    DBGWRT_1((DBH, "LL - Z188_Read: ch=%d\n",ch));
+    DBGWRT_1((DBH, "LL - Z188_Read: ch=%d, addr=0x%x\n",ch, llHdl->dataReg[ch]));
+
+	*value = 0;
 
 	/* channel disabled ? */
-	if ( llHdl->enable[ch] == 0)
+	if ( llHdl->enable[ch] == 0) {
+	  DBGWRT_1((DBH, "LL - Z188_Read ch=%d disabled\n", ch));
 		return(ERR_LL_READ);
+	}
 
 	/* read value of channel */
+	DBGWRT_1((DBH, "Read on register 0x%p + 0x%x\n",
+			  llHdl->ma, llHdl->dataReg[ch]));
 	tmp = MREAD_D16(llHdl->ma, llHdl->dataReg[ch]);
 
 	/* check for overcurrent situation and return a "DEVICE SPECIFIC" error*/
-	if (OVR(tmp))
+	if (OVR(tmp)) {
+	  DBGWRT_1((DBH, "LL - Z188_Read ch=%d overcurrent\n", ch));
 		ret = ERR_DEV;
+	}
+	*value = tmp & 0x7FFFFC;
 
-	*value = DATA(tmp);
+	DBGWRT_1((DBH, "LL - Z188_Read ch=%d value=0x%x (raw=0x%x)\n", ch, *value, tmp));
 
 	return(ret);
 }
@@ -1565,23 +1573,26 @@ static void InitAllChan(	/* nodoc */
     DBGWRT_1((DBH, "LL - Z188: InitAllChan\n"));
 
 	/* beginn with first data element */
-	prevDat = (int16)llHdl->nbrEnabledCh - 1;
-	currDat = 0;
+	/* prevDat = (int16)llHdl->nbrEnabledCh - 1; */
+	/* currDat = 0; */
 
 	/* search for enabled channels */
 	for (ch=0; ch<llHdl->chNumber; ch++) {
+	  if (ch > 7) continue;	/* XXX HACK! */
+	  DBGWRT_1((DBH, "JT Going to configure channel %d\n", ch));
 		if ( (llHdl->sampleAll) || (llHdl->enable[ch])) {
 			/* assign data register to channel */
-			llHdl->dataReg[ch] = DATA_REG(currDat);
+		  llHdl->dataReg[ch] = ch * 4; /* DATA_REG(currDat); */
+		  DBGWRT_1((DBH, "JT llHdl->dataReg[%d] = 0x%x\n", ch, llHdl->dataReg[ch]));
 			/* assign config register to channel */
-			llHdl->cfgReg[ch] = CFG_REG(prevDat);
+			/* llHdl->cfgReg[ch] = CFG_REG(prevDat); */
 
 			/* set address register of previous data element */
 			/* MWRITE_D16(llHdl->ma, ADR_REG(prevDat), currDat); */
 
 			/* update prevDat and currDat */
-			prevDat = currDat;
-			currDat++;
+			/* prevDat = currDat; */
+			/* currDat++; */
 			/* configure the channel */
 			ConfigChan(llHdl, ch);
 		}
@@ -1605,16 +1616,21 @@ static void ConfigChan(	/* nodoc */
 	int32     ch
 )
 {
-	u_int16 cfg;		/* config data */
+	u_int32 cfg;		/* config data */
 
     DBGWRT_1((DBH, "LL - Z188: ConfigChan\n"));
 
 	/* set config register for the channel */
-	cfg = (u_int16)(llHdl->bipolar  << 7) |
-		  (u_int16)(llHdl->gain[ch] << 4) |
-		  (u_int16) ch;
+	/* cfg = (u_int16)(llHdl->bipolar  << 7) | */
+	/* 	  (u_int16)(llHdl->gain[ch] << 4) | */
+	/* 	  (u_int16) ch; */
 
-	MWRITE_D16(llHdl->ma, llHdl->cfgReg[ch], cfg);
-
+	cfg = MREAD_D32(llHdl->ma, llHdl->dataReg[ch]);
+	DBGWRT_1((DBH, "JT cfg[%d] = 0x%x\n", ch, cfg));
+	/* Set gain to 0 */
+	cfg &= ~0x0700000;
+	MWRITE_D32(llHdl->ma, llHdl->dataReg[ch], cfg);
+	cfg = MREAD_D32(llHdl->ma, llHdl->dataReg[ch]);
+	DBGWRT_1((DBH, "JT cfg[%d] = 0x%x\n", ch, cfg));
 }
 
