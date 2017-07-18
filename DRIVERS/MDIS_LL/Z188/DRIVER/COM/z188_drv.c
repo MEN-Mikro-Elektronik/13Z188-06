@@ -651,7 +651,7 @@ static int32 Z188_Read(
 {
 	int32 tmp;
 	int32 ret = ERR_SUCCESS;
-    DBGWRT_1((DBH, "LL - Z188_Read: ch=%d, addr=0x%x\n",ch, llHdl->dataReg[ch]));
+    DBGWRT_1((DBH, "LL - Z188_Read: ch=%d\n",ch));
 
 	*value = 0;
 
@@ -671,9 +671,7 @@ static int32 Z188_Read(
 	  DBGWRT_1((DBH, "LL - Z188_Read ch=%d overcurrent\n", ch));
 		ret = ERR_DEV;
 	}
-	*value = tmp & 0x7FFFFC;
-
-	DBGWRT_1((DBH, "LL - Z188_Read ch=%d value=0x%x (raw=0x%x)\n", ch, *value, tmp));
+	*value = ((tmp & 0x7FFFFC) >> 2);
 
 	return(ret);
 }
@@ -1569,31 +1567,21 @@ static void InitAllChan(	/* nodoc */
 	u_int16 ch;			/* current channel */
 	u_int16 currDat;	/* current data element */
 	u_int16 prevDat;	/* previous data element */
+	u_int32 cfg;
 
     DBGWRT_1((DBH, "LL - Z188: InitAllChan\n"));
 
-	/* beginn with first data element */
-	/* prevDat = (int16)llHdl->nbrEnabledCh - 1; */
-	/* currDat = 0; */
+    DBGWRT_1((DBH, "LL - Z188: Enable ADC automode\n"));
+	cfg = MREAD_D32(llHdl->ma, 0x40);
+	cfg |= 0x1;
+	MWRITE_D32(llHdl->ma, 0x40, cfg);
 
 	/* search for enabled channels */
 	for (ch=0; ch<llHdl->chNumber; ch++) {
 	  if (ch > 7) continue;	/* XXX HACK! */
-	  DBGWRT_1((DBH, "JT Going to configure channel %d\n", ch));
 		if ( (llHdl->sampleAll) || (llHdl->enable[ch])) {
 			/* assign data register to channel */
-		  llHdl->dataReg[ch] = ch * 4; /* DATA_REG(currDat); */
-		  DBGWRT_1((DBH, "JT llHdl->dataReg[%d] = 0x%x\n", ch, llHdl->dataReg[ch]));
-			/* assign config register to channel */
-			/* llHdl->cfgReg[ch] = CFG_REG(prevDat); */
-
-			/* set address register of previous data element */
-			/* MWRITE_D16(llHdl->ma, ADR_REG(prevDat), currDat); */
-
-			/* update prevDat and currDat */
-			/* prevDat = currDat; */
-			/* currDat++; */
-			/* configure the channel */
+			llHdl->dataReg[ch] = ch * 4;
 			ConfigChan(llHdl, ch);
 		}
 	}
@@ -1620,17 +1608,9 @@ static void ConfigChan(	/* nodoc */
 
     DBGWRT_1((DBH, "LL - Z188: ConfigChan\n"));
 
-	/* set config register for the channel */
-	/* cfg = (u_int16)(llHdl->bipolar  << 7) | */
-	/* 	  (u_int16)(llHdl->gain[ch] << 4) | */
-	/* 	  (u_int16) ch; */
-
 	cfg = MREAD_D32(llHdl->ma, llHdl->dataReg[ch]);
-	DBGWRT_1((DBH, "JT cfg[%d] = 0x%x\n", ch, cfg));
-	/* Set gain to 0 */
 	cfg &= ~0x0700000;
 	MWRITE_D32(llHdl->ma, llHdl->dataReg[ch], cfg);
 	cfg = MREAD_D32(llHdl->ma, llHdl->dataReg[ch]);
-	DBGWRT_1((DBH, "JT cfg[%d] = 0x%x\n", ch, cfg));
 }
 
