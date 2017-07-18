@@ -657,7 +657,7 @@ static int32 Z188_Read(
 
 	/* channel disabled ? */
 	if ( llHdl->enable[ch] == 0) {
-		DBGWRT_1((DBH, "LL - Z188_Read ch=%d disabled\n", ch));
+	  DBGWRT_1((DBH, "LL - Z188_Read ch=%d disabled\n", ch));
 		return(ERR_LL_READ);
 	}
 
@@ -668,7 +668,7 @@ static int32 Z188_Read(
 
 	/* check for overcurrent situation and return a "DEVICE SPECIFIC" error*/
 	if (OVR(tmp)) {
-		DBGWRT_1((DBH, "LL - Z188_Read ch=%d overcurrent\n", ch));
+	  DBGWRT_1((DBH, "LL - Z188_Read ch=%d overcurrent\n", ch));
 		ret = ERR_DEV;
 	}
 	*value = ((tmp & 0x7FFFFC) >> 2);
@@ -1571,14 +1571,14 @@ static void InitAllChan(	/* nodoc */
 
     DBGWRT_1((DBH, "LL - Z188: InitAllChan\n"));
 
-    DBGWRT_1((DBH, "LL - F04: Enable ADC automode\n"));
+    DBGWRT_1((DBH, "LL - Z188: Enable ADC automode\n"));
 	cfg = MREAD_D32(llHdl->ma, 0x40);
 	cfg |= 0x1;
 	MWRITE_D32(llHdl->ma, 0x40, cfg);
 
 	/* search for enabled channels */
 	for (ch=0; ch<llHdl->chNumber; ch++) {
-		if (ch > 7) continue;	/* XXX HACK! */
+	  if (ch > 7) continue;	/* XXX HACK! */
 		if ( (llHdl->sampleAll) || (llHdl->enable[ch])) {
 			/* assign data register to channel */
 			llHdl->dataReg[ch] = ch * 4;

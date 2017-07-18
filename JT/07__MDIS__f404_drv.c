@@ -57,7 +57,7 @@
  *
  *               (1) = defineable via status call
  *               (2) = defineable via descriptor key
-1 *
+ *
  *     Required: ---
  *     Switches: _ONE_NAMESPACE_PER_DRIVER_
  *
@@ -1482,7 +1482,7 @@ static void InitAllChan(	/* nodoc */
 
 	cfg = MREAD_D32(llHdl->ma, CTRL_REG);
 	if (!(cfg & ADC_CFG_AUTO)) {
-		DBGWRT_1((DBH, "JT - F04: Enable ADC automode\n"));
+		DBGWRT_1((DBH, "LL - Z188: Enable ADC automode\n"));
 		cfg |= ADC_CFG_AUTO;
 		MWRITE_D32(llHdl->ma, CTRL_REG, cfg);
 	}

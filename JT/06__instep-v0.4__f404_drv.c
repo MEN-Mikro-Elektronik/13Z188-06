@@ -1482,14 +1482,14 @@ static void InitAllChan(	/* nodoc */
 
 	cfg = MREAD_D32(llHdl->ma, CTRL_REG);
 	if (!(cfg & ADC_CFG_AUTO)) {
-		DBGWRT_1((DBH, "JT - F04: Enable ADC automode\n"));
+    DBGWRT_1((DBH, "LL - Z188: Enable ADC automode\n"));
 		cfg |= ADC_CFG_AUTO;
 		MWRITE_D32(llHdl->ma, CTRL_REG, cfg);
 	}
 
 	/* search for enabled channels */
 	for (ch=0; ch<llHdl->chNumber; ch++) {
-		if (ch > 7) continue;	/* XXX HACK! */
+	  if (ch > 7) continue;	/* XXX HACK! */
 		if ( (llHdl->sampleAll) || (llHdl->enable[ch])) {
 			/* assign data register to channel */
 			llHdl->dataReg[ch] = ch * 4;
@@ -1515,22 +1515,22 @@ static void ConfigChan(	/* nodoc */
 	int32     ch
 )
 {
-    u_int32 cfg;		/* config data */
+	u_int32 cfg;		/* config data */
 
     DBGWRT_1((DBH, "LL - Z188: ConfigChan\n"));
 
-    cfg = MREAD_D32(llHdl->ma, llHdl->dataReg[ch]);
+	cfg = MREAD_D32(llHdl->ma, llHdl->dataReg[ch]);
 
     /* Set gain to 0 */
-    cfg &= ~0x0700000;
+	cfg &= ~0x0700000;
     /* Set measute mode (Voltage or Current) */
     if (llHdl->mmode[ch] == Z188_MODE_CURRENT) {
 		bitset(cfg, Z188_MEASURE_MODE);
     } else {
 		bitclr(cfg, Z188_MEASURE_MODE);
     }
-    MWRITE_D32(llHdl->ma, llHdl->dataReg[ch], cfg);
-    cfg = MREAD_D32(llHdl->ma, llHdl->dataReg[ch]);
+	MWRITE_D32(llHdl->ma, llHdl->dataReg[ch], cfg);
+	cfg = MREAD_D32(llHdl->ma, llHdl->dataReg[ch]);
 
 }
 
