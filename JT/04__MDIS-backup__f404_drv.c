@@ -113,7 +113,6 @@ static const char RCSid[]="$Id: z188_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $";
 #define GPO_REG			0x48
 
 #define OVR(x)			((x) & 0x1)
-#define DATA(x)			(((x) >> 2) & 0x3fffff)
 #define GPO_MASK		0x78000000
 #define GAIN_MASK		0x07000000
 
@@ -430,7 +429,7 @@ static int32 Z188_Init(
 
     /* ID_CHECK */
     if ((error = DESC_GetUInt32(llHdl->descHdl, TRUE,
-		&llHdl->idCheck, "ID_CHECK")) &&
+								&llHdl->idCheck, "ID_CHECK")) &&
 		error != ERR_DESC_KEY_NOTFOUND)
 		return( Cleanup(llHdl,error) );
 
@@ -1570,7 +1569,6 @@ static void InitAllChan(	/* nodoc */
 	u_int16 ch;			/* current channel */
 	u_int16 currDat;	/* current data element */
 	u_int16 prevDat;	/* previous data element */
-	u_int32 tmp;
 
     DBGWRT_1((DBH, "LL - Z188: InitAllChan\n"));
 
@@ -1578,14 +1576,6 @@ static void InitAllChan(	/* nodoc */
 	/* prevDat = (int16)llHdl->nbrEnabledCh - 1; */
 	/* currDat = 0; */
 
-#define ADC_REF_CTRL 0x9c
-#if 0 
-	/* Enable ADC */
-    DBGWRT_1((DBH, "JT - Enable ADC\n"));
-	MWRITE_D32(llHdl->ma, ADC_REF_CTRL, 0x2c);
-	tmp = MREAD_D32(llHdl->ma, ADC_REF_CTRL);
-	DBGWRT_1((DBH, "JT 0x9c = 0x%x\n", tmp));
-#endif
 	/* search for enabled channels */
 	for (ch=0; ch<llHdl->chNumber; ch++) {
 	  if (ch > 7) continue;	/* XXX HACK! */
