@@ -1,0 +1,47 @@
+
+NOW:
+
+1) check functionality of JT's driver. Seems just to satisfy needs of SNY-OBS
+!!! JT seems not to distinguish single ended and differential mode
+!!! He sets number of channels to 8 (which would be single ended)
+!!! but SNY-OBS uses 4 differential channels
+    He might have intended diff. mode but forgot to change the number when
+    changing symbol CH_NUMBER_DIFF to CH_NUMBER in JT/06*
+
+2) adapt package_desc
+3) check/adapt tools, maybe remove them if m36 tools can be used
+4) check/adapt example, maybe remove them if m36 tools can be used
+
+
+
+LATER:
+
+*!*!*!*!*!*!*!* THIS LOOKS WRONG *!*!*!*!*!*!*!*!*!* POSSIBLE ERROR *!*!*!*!*
+DRIVERS/MDIS_LL/M037/TOOLS/M37_BLKWRITE/COM/m37_blkwrite.c contains M36_EXT_TRIG
+                ^^^^                                                ^^^
+                  37                      <-->                       36
+There is also a M37_EXT_TRIG in m37_drv.h
+
+
+M36_drv.c top-comment:
+ *               The M36 module is a 16 bit analog input module with 8
+ *               grounded or 16 differential inputs. This depends on the input
+It's vice versa:
+  16 grounded or 8 differential inputs.
+
+
+MAYBE:
+
+If there are problems with channel initialisation, try if this helps (see 29efa48):
+       u_int32 tmp;
+#define ADC_REF_CTRL 0x9c
+#if 0
+       /* Enable ADC */
+    DBGWRT_1((DBH, "JT - Enable ADC\n"));
+       MWRITE_D32(llHdl->ma, ADC_REF_CTRL, 0x2c);
+       tmp = MREAD_D32(llHdl->ma, ADC_REF_CTRL);
+       DBGWRT_1((DBH, "JT 0x9c = 0x%x\n", tmp));
+#endif
+
+
+

@@ -1,6 +1,22 @@
 ===>
-===> This repo up to now (rev f88bcbc) is just a clone from M36 with files renamed and meta-data adapted to it.
-===> Now let's see which files JT changed and what he did
+===> This repo up to now (rev f88bcbc) is just a clone from M36 with files
+===> renamed and meta-data adapted to it.
+===> Now let's see which files JT changed and what he did.
+===>
+===> Everything described in here is about work on 13f404-06 that was found on
+===> the old archlinux image (in a local git repo) and in instep (in several
+===> zip archives). Since this is about the driver code I include also the
+===> f404_drv.c* files that were in /opt/menlinux of the old archlinux image.
+===>
+===> In revision 11a1891 of this repo z188_drv.c contains all changes (that
+===> I'm aware of right now) that JT did for f404_drv.c
+===>
+===> Code changes related to display_all.c or to the files below TOOLS and
+===> EXAMPLE in /opt/menlinux/DRIVERS/MDIS_LL/Z188/TOOLS/ will analyzed
+===> separately and not in this file.
+===>
+===> The files from 14f404 I refer to some lines below can be found in
+===> ssh://git@men-swdev1.intra.men.de:7999/~czoz/sny-investigation-13f404.git
 ===>
 
 men@snyobs:/home/code/13Z188-06$ (cd DRIVERS/MDIS_LL/Z188/; find * -type f) | while read a; do b=${a/z188/f404}; b=${b/Z188/M36}; printf "%-40s %d\n" $a `diff -u DRIVERS/MDIS_LL/Z188/$a ../13f404/$b | wc -l`; done
@@ -132,6 +148,10 @@ sed -i s/M36_Init/Z188_Init/ JT/0{2..7}*
 
 sed -i s/m36_drv.c/z188_drv.c/ JT/0{2..7}*
 
+===> After all that structured changes JT/07* has only whitespace changes left
+===> So I will leave JT/07*
+
+===> ==============================================================================
 ===>
 ===> All other changes are adaptions to differing file names
 ===> or changes in file history comments
