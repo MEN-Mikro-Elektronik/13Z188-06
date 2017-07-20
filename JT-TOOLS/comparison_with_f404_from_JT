@@ -189,3 +189,42 @@ czoz@linux-x392:/data-sny/Z188> diff -uw menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOL
 
 ===> this is not of interest
 
+======================================================================================================
+4) TOOLS/*_BLKREAD
+
+czoz@linux-x392:/data-sny/Z188> TTT=_BLKREAD
+czoz@linux-x392:/data-sny/Z188> find {13f404{,/from-instep},{menlinux-arch,13Z188-06}/DRIVERS/MDIS_LL/Z188}/[TE]* -type f | grep $TTT | grep program.mak | (read a; echo "  $a"; while read b; do cmp $a $b &>/dev/null && echo "  -- EQUAL: $b" || diff -u $a $b; done)
+  13f404/TOOLS/M36_BLKREAD/COM/program.mak
+  -- EQUAL: menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/M36_BLKREAD/COM/program.mak
+--- 13f404/TOOLS/M36_BLKREAD/COM/program.mak    2017-05-09 11:37:59.684804400 +0200
++++ 13Z188-06/DRIVERS/MDIS_LL/Z188/TOOLS/Z188_BLKREAD/COM/program.mak   2017-07-14 14:51:36.344766300 +0200
+@@ -21,7 +21,7 @@
+ #   (c) Copyright 1998 by MEN mikro elektronik GmbH, Nuernberg, Germany
+ #*****************************************************************************
+ 
+-MAK_NAME=f404_blkread
++MAK_NAME=z188_blkread
+ 
+ MAK_LIBS=$(LIB_PREFIX)$(MEN_LIB_DIR)/mdis_api$(LIB_SUFFIX)    \
+          $(LIB_PREFIX)$(MEN_LIB_DIR)/usr_oss$(LIB_SUFFIX)     \
+@@ -33,6 +33,6 @@
+          $(MEN_INC_DIR)/usr_oss.h     \
+          $(MEN_INC_DIR)/usr_utl.h     \
+ 
+-MAK_INP1=f404_blkread$(INP_SUFFIX)
++MAK_INP1=z188_blkread$(INP_SUFFIX)
+ 
+ MAK_INP=$(MAK_INP1)
+czoz@linux-x392:/data-sny/Z188> find {13f404{,/from-instep},{menlinux-arch,13Z188-06}/DRIVERS/MDIS_LL/Z188}/[TE]* -type f | grep $TTT | grep '\.c$' | (read a; echo "  $a"; while read b; do cmp $a $b &>/dev/null && echo "  -- EQUAL: $b" || diff -u $a $b; done)          
+  13f404/TOOLS/M36_BLKREAD/COM/f404_blkread.c
+  -- EQUAL: menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/M36_BLKREAD/COM/f404_blkread.c
+--- 13f404/TOOLS/M36_BLKREAD/COM/f404_blkread.c 2017-05-09 11:37:59.684804400 +0200
++++ 13Z188-06/DRIVERS/MDIS_LL/Z188/TOOLS/Z188_BLKREAD/COM/z188_blkread.c        2017-07-14 14:51:36.344766300 +0200
+     [ ... 110 lines deleted ... ]
+
+diff -u menlinux-old/DRIVERS/MDIS_LL/M036/TOOLS/M36_BLKREAD/COM/m36_blkread.c 13f404/TOOLS/M36_BLKREAD/COM/f404_blkread.c
+
+===> This diff is empty ==> f404_blkread.c is just an unchanged older version of m36_blkread.c
+===> We may skip it.
+===> our program.mak is OK so we skip it, too.
+
