@@ -228,3 +228,59 @@ diff -u menlinux-old/DRIVERS/MDIS_LL/M036/TOOLS/M36_BLKREAD/COM/m36_blkread.c 13
 ===> We may skip it.
 ===> our program.mak is OK so we skip it, too.
 
+
+======================================================================================================
+5) TOOLS/DISPLAY_ALL
+
+===> This tool is not only about z188. It deal with a components of f404
+
+diff -u 13f404/from-instep/TOOLS_DISPLAY_ALL_COM_program.mak-2013-10-09_v0.4 menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/DISPLAY_ALL/COM/program.mak
+
+===> add only one of them to JT-TOOLS
+
+czoz@linux-x392:/data-sny/Z188> diff -u menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/DISPLAY_ALL/COM/display_all.c.patch <(diff -up menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/DISPLAY_ALL/COM/display_all.c.bak menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/DISPLAY_ALL/COM/display_all.c.new)
+--- menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/DISPLAY_ALL/COM/display_all.c.patch        2013-11-05 17:40:51.391431707 +0100
++++ /dev/fd/63  2017-07-20 16:49:33.039656433 +0200
+@@ -1,5 +1,5 @@
+---- display_all.c      2013-10-23 13:51:37.287136163 +0200
+-+++ display_all.c.new  2013-11-05 17:40:39.704824050 +0100
++--- menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/DISPLAY_ALL/COM/display_all.c.bak 2010-04-07 02:03:24.062502444 +0200
+++++ menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/DISPLAY_ALL/COM/display_all.c.new 2013-11-05 17:40:39.704824050 +0100
+ @@ -49,6 +49,26 @@ struct gpio {
+        int32 dber_time[16];
+  };
+
+===> menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/DISPLAY_ALL/COM/display_all.c.patch can be ignored
+
+--- menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/DISPLAY_ALL/COM/display_all.c      2013-11-05 17:47:28.219280053 +0100
++++ menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/DISPLAY_ALL/COM/display_all.c.new  2013-11-05 17:40:39.704824050 +0100
+@@ -192,7 +192,7 @@
+                tbuf[strlen(tbuf) - 1] = '\0';
+                printf("+----------------------------------------------+\n");
+                printf("|            Display all for F404C             |\n");
+-               printf("|                   Card %d                    |\n", card);
++               printf("|                   Card %d                    |\n");
+                printf("|             Press 'h' for help               |\n");
+                printf("|           %s           |\n", tbuf);
+                printf("|----------------------------------------------|\n");
+
+===> display_all.c.new is a broken version of display_all.c ==> skip *new
+
+===> so these files are of some interest: (leave this token here: AXXXAYAZA)
+menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/DISPLAY_ALL/COM/program.mak
+13f404/from-instep/TOOLS_DISPLAY_ALL_COM_display_all.c-2013-09-24_v0.1
+13f404/from-instep/TOOLS_DISPLAY_ALL_COM_display_all.c-2013-10-09_v0.4
+menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/DISPLAY_ALL/COM/display_all.c.bak
+menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/DISPLAY_ALL/COM/display_all.c
+
+===> diffing them show that the list above is sorted from old to new:
+===> let's add all of them to JT-TOOLS in a numbered way:
+
+cd /data-sny/Z188/; n=1
+grep -A5 'AX*AYAZA' 13Z188-06/JT-TOOLS/comparison_with_f404_from_JT | tail -4 | while read a; do cp -v $a 13Z188-06/JT-TOOLS/DISPLAY_ALL/0$((n++))___`basename $a`; done
+
+===> There was another version of display_all.c in ~men/ of old archlinux image. It looks like the very first version
+===> And a script to start it properly
+
+cp ../../root/men_tests/display_all/display_all.c JT-TOOLS/DISPLAY_ALL/00___home_men__display_all.c
+cp ../../root/bin/start_display_all.sh JT-TOOLS/DISPLAY_ALL/

@@ -1,0 +1,244 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <MEN/men_typs.h>
+#include <MEN/usr_oss.h>
+#include <MEN/usr_utl.h>
+#include <MEN/mdis_api.h>
+#include <MEN/m36_drv.h>
+
+#define BIT(x) (1 << (x))
+
+enum adc_mode {
+	VOLTAGE = 0,
+	CURRENT = 1,
+};
+
+struct channel {
+    double volt;
+    u_int32 hex;
+	enum adc_mode mode;
+};
+
+struct adc {
+    MDIS_PATH path;
+    struct channel channels[8];
+};
+
+/*--------------------------------------+
+|   PROTOTYPES                          |
++--------------------------------------*/
+static void usage(void);
+static void error(char *info);
+static double hex2volt(int ch, int32 hex);
+static void read_adc(struct adc *adc);
+static int read_adc_channel(struct adc *adc, int ch);
+static void clear(void);
+static struct adc * init_adc(void);
+static void deinit_adc(struct adc *adc);
+
+/********************************* main *************************************
+ *
+ *  Description: Program main function
+ *
+ *---------------------------------------------------------------------------
+ *  Input......: argc,argv	argument counter, data ..
+ *  Output.....: return	    success (0) or error (1)
+ *  Globals....: -
+ ****************************************************************************/
+int main(int argc, char **argv)
+{
+	char *errstr;
+	char buf[40];
+	struct adc *adc = NULL;
+
+	/*----------------+
+	| check arguments |
+	+---------------*/
+	if ((errstr = UTL_ILLIOPT("?", buf))) { /* check args */
+		printf("*** %s\n", errstr);
+		return(1);
+	}
+	
+	adc = init_adc();
+
+	do {
+		clear();
+		printf("+----------------------------------+\n");
+		printf("|       Display all for F404C      |\n");
+		printf("|----------------------------------|\n");
+		read_adc(adc);
+		printf("+----------------------------------+\n");
+		UOS_Delay(1000);
+	} while (1);
+
+	deinit_adc(adc);
+
+	return(0); 
+}
+
+static void read_adc(struct adc *adc)
+{
+	int i;
+
+	printf("|----------------------------------|\n");
+	printf("| Analog Inputs                    |\n");
+	printf("|----------------------------------|\n");
+
+	for (i = 0; i < 8; i++) {
+		if (read_adc_channel(adc, i) < 0) {
+			error("read adc");
+			goto abort;
+		}
+	}
+
+	printf("+----------------------------------+\n");
+
+	return;
+
+abort:
+	exit(1);
+}
+
+static int read_adc_channel(struct adc *adc, int ch)
+{
+	int32 value = 0;
+
+	if ((M_setstat(adc->path, M36_BIPOLAR, 1)) < 0) {
+		error("setstat M36_BIPOLAR");
+		goto abort;
+	}
+	if ((M_setstat(adc->path, M_MK_CH_CURRENT, ch)) < 0) {
+		error("setstat M_MK_CH_CURRENT");
+		goto abort;
+	}
+	if ((M_setstat(adc->path, M36_CH_ENABLE, 1)) < 0) {
+		error("setstat M36_CH_ENABLE");
+		goto abort;
+	}
+	if ((M_setstat(adc->path, M36_CH_GAIN, 0)) < 0) {
+		error("setstat M36_CH_GAIN");
+	}
+	if ((M_setstat(adc->path, M36_EXT_TRIG, 0)) < 0) {
+		error("setstat M36_EXT_TRIG");
+		goto abort;
+	}
+
+	if ((M_read(adc->path, &value)) < 0) {
+		error("read");
+		goto abort;
+	}
+	/* XXX Separate Display Logic from ADC logic */
+	adc->channels[ch].volt = hex2volt(ch, value);
+	adc->channels[ch].hex = value;
+
+	value = 0;
+
+	printf("|AI[%1d] = %+02.4f V | Raw Data: 0x%04x |\n",
+		   ch, adc->channels[ch].volt, adc->channels[ch].hex);
+	
+	return 0;
+
+abort:
+	return -1;
+}
+
+/********************************* error ********************************
+ *
+ *  Description: Print MDIS error message
+ *
+ *---------------------------------------------------------------------------
+ *  Input......: info	info string
+ *  Output.....: -
+ *  Globals....: -
+ ****************************************************************************/
+
+static void error(char *info)
+{
+	printf("*** can't %s: %s\n", info, M_errstring(UOS_ErrnoGet()));
+}
+
+/********************************* usage ************************************
+ *
+ *  Description: Print program usage
+ *
+ *---------------------------------------------------------------------------
+ *  Input......: -
+ *  Output.....: -
+ *  Globals....: -
+ ****************************************************************************/
+static void usage(void)
+{
+	printf("Usage: display_all [<opts>] <device> [<opts>]\n");
+	printf("Function: Configure and read all F404 channels\n");
+	printf("Options:\n");
+	printf("    device       device name                 [none]\n");
+	printf("\n");
+	printf("(c) 2013 by MEN mikro elektronik GmbH\n\n");
+}
+
+static double hex2volt(int ch, int32 value)
+{
+	double volts = 0.0;
+
+	if (ch < 0 || ch > 7) {
+		printf("Illegal channel %d\n", ch);
+		exit(1);
+	}
+
+	switch(ch) {
+	case 0:
+	case 1:
+	case 2:
+	case 3:
+		volts = (value - 0xffc) * (20.0 / 0x1d9d);
+		break;
+	case 4:
+		volts = value * 2 * 2.5 / 8192;
+		break;
+	case 5:
+		volts = value * 4.3 * 2.5 / 8192;
+		break;
+	case 6:
+		volts = value * 11 * 2.5 / 8192;
+		break;
+	case 7:
+		volts = value * -10 * 2.5 / 8192;
+		break;
+	}
+
+	return volts;
+}
+
+static void clear(void)
+{
+	system("clear");
+}
+
+static struct adc * init_adc(void)
+{
+    struct adc *adc = NULL;
+
+    adc = malloc(sizeof(*adc));
+    if (adc == NULL) {
+		printf("can't allocate memory for adc\n");
+		return NULL;
+    }
+
+    if ((adc->path = M_open("adc_1")) < 0) {
+		error("open");
+		return NULL;
+    }
+
+	return adc;
+}
+
+static void deinit_adc(struct adc *adc)
+{
+    if (M_close(adc->path) < 0) {
+	error("close");
+    }
+
+    free(adc);
+    adc = NULL;
+}
