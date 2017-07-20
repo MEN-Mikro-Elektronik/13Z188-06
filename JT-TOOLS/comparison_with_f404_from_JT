@@ -1,0 +1,87 @@
+
+===> Compare code of Tools and Examples
+
+We have different sources:
+new repo: 13Z188-06/DRIVERS/MDIS_LL/Z188/{EXAMPLE,TOOLS}
+old repo: 13f404/{EXAMPLE,TEST,TOOLS}
+instep:   13f404/from-instep/TOOL*
+new mdis: this is equivalent with new repo
+old mdis: menlinux-arch/DRIVERS/MDIS_LL/Z188/{EXAMPLE,TEST,TOOLS}
+
+czoz@linux-x392:/data-sny/Z188> ls -l *
+lrwxrwxrwx 1 czoz users 21 Jul 20 11:54 13f404 -> ../czoz/newsys/13f404        # old repo
+lrwxrwxrwx 1 czoz users 24 Jul 20 11:54 13Z188-06 -> ../czoz/newsys/13Z188-06  # new repo
+lrwxrwxrwx 1 czoz users 20 Jul 20 11:56 menlinux-arch -> ../czoz/opt/menlinux  # old mdis
+
+So these are the files we deal with:
+czoz@linux-x392:/data-sny/Z188> for T in  SIMP TEST READ BLKREAD ALL; do echo $T; find {13f404{,/from-instep},{menlinux-arch,13Z188-06}/DRIVERS/MDIS_LL/Z188}/[TE]* -type f | grep "_$T"; done
+SIMP
+13f404/EXAMPLE/M36_SIMP/COM/program.mak
+13f404/EXAMPLE/M36_SIMP/COM/f404_simp.c
+menlinux-arch/DRIVERS/MDIS_LL/Z188/EXAMPLE/M36_SIMP/COM/program.mak
+menlinux-arch/DRIVERS/MDIS_LL/Z188/EXAMPLE/M36_SIMP/COM/f404_simp.c
+13Z188-06/DRIVERS/MDIS_LL/Z188/EXAMPLE/Z188_SIMP/COM/program.mak
+13Z188-06/DRIVERS/MDIS_LL/Z188/EXAMPLE/Z188_SIMP/COM/z188_simp.c
+TEST
+13f404/TEST/M36_TEST/COM/program.mak
+13f404/TEST/M36_TEST/COM/f404_test.c
+menlinux-arch/DRIVERS/MDIS_LL/Z188/TEST/M36_TEST/COM/program.mak
+menlinux-arch/DRIVERS/MDIS_LL/Z188/TEST/M36_TEST/COM/f404_test.c
+READ
+13f404/TOOLS/M36_READ/COM/program.mak
+13f404/TOOLS/M36_READ/COM/f404_read.c
+menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/M36_READ/COM/program.mak
+menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/M36_READ/COM/f404_read.c
+menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/M36_READ/COM/f404_read.c~
+13Z188-06/DRIVERS/MDIS_LL/Z188/TOOLS/Z188_READ/COM/program.mak
+13Z188-06/DRIVERS/MDIS_LL/Z188/TOOLS/Z188_READ/COM/z188_read.c
+BLKREAD
+13f404/TOOLS/M36_BLKREAD/COM/program.mak
+13f404/TOOLS/M36_BLKREAD/COM/f404_blkread.c
+menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/M36_BLKREAD/COM/program.mak
+menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/M36_BLKREAD/COM/f404_blkread.c
+13Z188-06/DRIVERS/MDIS_LL/Z188/TOOLS/Z188_BLKREAD/COM/program.mak
+13Z188-06/DRIVERS/MDIS_LL/Z188/TOOLS/Z188_BLKREAD/COM/z188_blkread.c
+ALL
+13f404/from-instep/TOOLS_DISPLAY_ALL_COM_display_all.c-2013-09-24_v0.1
+13f404/from-instep/TOOLS_DISPLAY_ALL_COM_display_all.c-2013-10-09_v0.4
+13f404/from-instep/TOOLS_DISPLAY_ALL_COM_program.mak-2013-10-09_v0.4
+menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/DISPLAY_ALL/COM/program.mak
+menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/DISPLAY_ALL/COM/display_all.c.new
+menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/DISPLAY_ALL/COM/display_all.c.patch
+menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/DISPLAY_ALL/COM/display_all.c
+menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/DISPLAY_ALL/COM/display_all.c.bak
+
+======================================================================================================
+1) EXAMPLE/*_SIMP
+
+czoz@linux-x392:/data-sny/Z188> find {13f404{,/from-instep},{menlinux-arch,13Z188-06}/DRIVERS/MDIS_LL/Z188}/[TE]* -type f | grep _SIMP | grep program.mak | (read a; echo "  $a"; while read b; do cmp $a $b &>/dev/null && echo "  -- EQUAL: $b" || diff -u $a $b; done)
+  13f404/EXAMPLE/M36_SIMP/COM/program.mak
+  -- EQUAL: menlinux-arch/DRIVERS/MDIS_LL/Z188/EXAMPLE/M36_SIMP/COM/program.mak
+--- 13f404/EXAMPLE/M36_SIMP/COM/program.mak     2017-05-09 11:37:59.684804400 +0200
++++ 13Z188-06/DRIVERS/MDIS_LL/Z188/EXAMPLE/Z188_SIMP/COM/program.mak    2017-07-14 14:51:36.344766300 +0200
+@@ -20,7 +20,7 @@
+ #   (c) Copyright 1998 by MEN mikro elektronik GmbH, Nuernberg, Germany
+ #*****************************************************************************
+ 
+-MAK_NAME=f404_simp
++MAK_NAME=z188_simp
+ 
+ MAK_LIBS=$(LIB_PREFIX)$(MEN_LIB_DIR)/mdis_api$(LIB_SUFFIX)    \
+          $(LIB_PREFIX)$(MEN_LIB_DIR)/usr_oss$(LIB_SUFFIX)     \
+@@ -34,6 +34,6 @@
+          $(MEN_INC_DIR)/usr_utl.h     \
+ 
+ 
+-MAK_INP1=f404_simp$(INP_SUFFIX)
++MAK_INP1=z188_simp$(INP_SUFFIX)
+ 
+ MAK_INP=$(MAK_INP1)
+czoz@linux-x392:/data-sny/Z188> find {13f404{,/from-instep},{menlinux-arch,13Z188-06}/DRIVERS/MDIS_LL/Z188}/[TE]* -type f | grep _SIMP | grep '\.c$' | (read a; echo "  $a"; while read b; do cmp $a $b &>/dev/null && echo "  -- EQUAL: $b" || diff -u $a $b; done)
+  13f404/EXAMPLE/M36_SIMP/COM/f404_simp.c
+  -- EQUAL: menlinux-arch/DRIVERS/MDIS_LL/Z188/EXAMPLE/M36_SIMP/COM/f404_simp.c
+  -- EQUAL: 13Z188-06/DRIVERS/MDIS_LL/Z188/EXAMPLE/Z188_SIMP/COM/z188_simp.c
+
+
+===> what we have in 13Z188-06 is OK
+
