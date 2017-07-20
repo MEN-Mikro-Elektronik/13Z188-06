@@ -85,3 +85,14 @@ czoz@linux-x392:/data-sny/Z188> find {13f404{,/from-instep},{menlinux-arch,13Z18
 
 ===> what we have in 13Z188-06 is OK
 
+======================================================================================================
+2) TEST/*_TEST
+
+czoz@linux-x392:/data-sny/Z188> find {13f404{,/from-instep},{menlinux-arch,13Z188-06}/DRIVERS/MDIS_LL/Z188}/[TE]* -type f | grep _TEST | grep program.mak | (read a; echo "  $a"; while read b; do cmp $a $b &>/dev/null && echo "  -- EQUAL: $b" || diff -u $a $b; done)
+  13f404/TEST/M36_TEST/COM/program.mak
+  -- EQUAL: menlinux-arch/DRIVERS/MDIS_LL/Z188/TEST/M36_TEST/COM/program.mak
+czoz@linux-x392:/data-sny/Z188> find {13f404{,/from-instep},{menlinux-arch,13Z188-06}/DRIVERS/MDIS_LL/Z188}/[TE]* -type f | grep _TEST | grep '\.c$' | (read a; echo "  $a"; while read b; do cmp $a $b &>/dev/null && echo "  -- EQUAL: $b" || diff -u $a $b; done)
+  13f404/TEST/M36_TEST/COM/f404_test.c
+  -- EQUAL: menlinux-arch/DRIVERS/MDIS_LL/Z188/TEST/M36_TEST/COM/f404_test.c
+
+===> take it from 13f404
