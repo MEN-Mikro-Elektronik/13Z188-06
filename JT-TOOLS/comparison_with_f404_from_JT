@@ -96,3 +96,96 @@ czoz@linux-x392:/data-sny/Z188> find {13f404{,/from-instep},{menlinux-arch,13Z18
   -- EQUAL: menlinux-arch/DRIVERS/MDIS_LL/Z188/TEST/M36_TEST/COM/f404_test.c
 
 ===> take it from 13f404
+
+======================================================================================================
+3) TOOLS/*_READ
+
+czoz@linux-x392:/data-sny/Z188> TTT=_READ
+czoz@linux-x392:/data-sny/Z188> find {13f404{,/from-instep},{menlinux-arch,13Z188-06}/DRIVERS/MDIS_LL/Z188}/[TE]* -type f | grep $TTT | grep program.mak | (read a; echo "  $a"; while read b; do cmp $a $b &>/dev/null && echo "  -- EQUAL: $b" || diff -u $a $b; done)
+  13f404/TOOLS/M36_READ/COM/program.mak
+  -- EQUAL: menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/M36_READ/COM/program.mak
+--- 13f404/TOOLS/M36_READ/COM/program.mak       2017-05-09 11:37:59.688804400 +0200
++++ 13Z188-06/DRIVERS/MDIS_LL/Z188/TOOLS/Z188_READ/COM/program.mak      2017-07-14 14:51:36.344766300 +0200
+@@ -21,7 +21,7 @@
+ #   (c) Copyright 1998 by MEN mikro elektronik GmbH, Nuernberg, Germany
+ #*****************************************************************************
+ 
+-MAK_NAME=f404_read
++MAK_NAME=z188_read
+ 
+ MAK_LIBS=$(LIB_PREFIX)$(MEN_LIB_DIR)/mdis_api$(LIB_SUFFIX)    \
+          $(LIB_PREFIX)$(MEN_LIB_DIR)/usr_oss$(LIB_SUFFIX)     \
+@@ -33,6 +33,6 @@
+          $(MEN_INC_DIR)/usr_oss.h     \
+          $(MEN_INC_DIR)/usr_utl.h     \
+ 
+-MAK_INP1=f404_read$(INP_SUFFIX)
++MAK_INP1=z188_read$(INP_SUFFIX)
+ 
+ MAK_INP=$(MAK_INP1)
+czoz@linux-x392:/data-sny/Z188> find {13f404{,/from-instep},{menlinux-arch,13Z188-06}/DRIVERS/MDIS_LL/Z188}/[TE]* -type f | grep $TTT | grep '\.c$' | (read a; echo "  $a"; while read b; do cmp $a $b &>/dev/null && echo "  -- EQUAL: $b" || diff -u $a $b; done)
+  13f404/TOOLS/M36_READ/COM/f404_read.c
+--- 13f404/TOOLS/M36_READ/COM/f404_read.c       2017-05-09 11:37:59.688804400 +0200
++++ menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/M36_READ/COM/f404_read.c   2013-09-19 11:40:11.951071490 +0200
+@@ -225,12 +225,18 @@
+                                break;
+                        /* voltage */
+                        case 1:
++#if 0
+                                if (mode)
+                                        volt = (int16)value * 20.0 / 0xffff;    /* bipolar */
+                                else
+                                        volt = (u_int16)value * 10.0 / 0xffff;  /* unipolar */
++#endif
++                               if (mode)
++                                       volt = (value - 0xffc) * (20.0 / 0x1d9d); /* bipolar */
++                               else
++                                       volt = (value - 0xffc) * (10.0 /0x1d9d); /* unipolar */
+                                printf("read: 0x%04x = %7.4f V (%s)\n",
+-                                       value, volt, (mode==0 ? "unipolar":"bipolar"));
++                                          value, volt, (mode==0 ? "unipolar":"bipolar"));
+                                break;
+                        /* current */
+                        case 2:
+--- 13f404/TOOLS/M36_READ/COM/f404_read.c       2017-05-09 11:37:59.688804400 +0200
++++ 13Z188-06/DRIVERS/MDIS_LL/Z188/TOOLS/Z188_READ/COM/z188_read.c      2017-07-14 14:51:36.344766300 +0200
+@@ -48,7 +48,7 @@
+ 
+ #include <stdio.h>
+ #include <stdlib.h>
+-
++#include <string.h>
+ #include <MEN/men_typs.h>
+ #include <MEN/usr_oss.h>
+ #include <MEN/usr_utl.h>
+
+===> our program.mak is OK
+===> our z188_read.c has a fix (from M36 repo) newer than work on 13f404 ==> we keep it
+===> f404_read.c from menlinux-arch has changes we should care about     ==> let's take it
+
+There is a backup file menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/M36_READ/COM/f404_read.c~
+
+czoz@linux-x392:/data-sny/Z188> diff -uw menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/M36_READ/COM/f404_read.c{~,}
+--- menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/M36_READ/COM/f404_read.c~  2013-09-19 11:37:25.931971186 +0200
++++ menlinux-arch/DRIVERS/MDIS_LL/Z188/TOOLS/M36_READ/COM/f404_read.c   2013-09-19 11:40:11.951071490 +0200
+@@ -230,13 +230,13 @@
+                                        volt = (int16)value * 20.0 / 0xffff;    /* bipolar */
+                                else
+                                        volt = (u_int16)value * 10.0 / 0xffff;  /* unipolar */
+-                               printf("read: 0x%04x = %7.4f V (%s)\n",
+-                                       value, volt, (mode==0 ? "unipolar":"bipolar"));
+ #endif
+                                if (mode)
+-                                       volt = (value - 0xffc) * (20.0 / 0x1d9d);
++                                       volt = (value - 0xffc) * (20.0 / 0x1d9d); /* bipolar */
+                                else
+-                                       volt = (value - 0xffc) * (10.0 /0x1d9d);
++                                       volt = (value - 0xffc) * (10.0 /0x1d9d); /* unipolar */
++                               printf("read: 0x%04x = %7.4f V (%s)\n",
++                                          value, volt, (mode==0 ? "unipolar":"bipolar"));
+                                break;
+                        /* current */
+                        case 2:
+
+===> this is not of interest
+
