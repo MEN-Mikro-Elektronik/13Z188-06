@@ -67,7 +67,7 @@
 
 static const char RCSid[]="$Id: z188_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $";
 
-#define _NO_LL_HANDLE		/* ll_defs.h: don't define LL_HANDLE struct */
+#define _NO_LL_HANDLE       /* ll_defs.h: don't define LL_HANDLE struct */
 
 #include <MEN/men_typs.h>   /* system dependend definitions   */
 #include <MEN/maccess.h>    /* hw access macros and types     */
@@ -86,57 +86,57 @@ static const char RCSid[]="$Id: z188_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $";
 |  DEFINES                                 |
 +-----------------------------------------*/
 /* general */
-#define CH_NUMBER	8	/* nr of device channels */
-#define CH_BYTES			2		/* nr of bytes per channel */
-#define USE_IRQ				TRUE	/* interrupt required  */
-#define ADDRSPACE_COUNT		1		/* nr of required address spaces */
-#define ADDRSPACE_SIZE		256		/* size of address space */
+#define CH_NUMBER       8       /* nr of device channels */
+#define CH_BYTES        2       /* nr of bytes per channel */
+#define USE_IRQ         TRUE    /* interrupt required  */
+#define ADDRSPACE_COUNT 1       /* nr of required address spaces */
+#define ADDRSPACE_SIZE  256     /* size of address space */
 
-#define MOD_ID_MAGIC		0x5346  /* id prom magic word */
-#define MOD_ID_SIZE			128		/* id prom size [bytes] */
+#define MOD_ID_MAGIC    0x5346  /* id prom magic word */
+#define MOD_ID_SIZE     128     /* id prom size [bytes] */
 
-#define MOD_ID_M36			0x24	/* classic M36  mod id = 36(dez) */
-#define MOD_ID_M36N			0x7d24	/* New M36N  mod id    = 32036(dez) */
+#define MOD_ID_M36      0x24    /* classic M36  mod id = 36(dez) */
+#define MOD_ID_M36N     0x7d24  /* New M36N  mod id    = 32036(dez) */
 
 /* debug settings */
-#define DBG_MYLEVEL			llHdl->dbgLevel
-#define DBH					llHdl->dbgHdl
+#define DBG_MYLEVEL     llHdl->dbgLevel
+#define DBH             llHdl->dbgHdl
 
 /* <JT> */
 /* register offsets */
-#define ADC_DATA(x)		(((x) & 0x7ffffc) >> 2)
-#define ADC_OVR(x)		((x) & 0x1)
-#define GPO_MASK		0x78000000
-#define GAIN_MASK		0x07000000
-#define ADC_CFG_AUTO	0x1
-#define CTRL_REG		0x40				/* control register */
-#define TIME_BASE_REG	0x44
-#define GPO_REG			0x48
+#define ADC_DATA(x)     (((x) & 0x7ffffc) >> 2)
+#define ADC_OVR(x)      ((x) & 0x1)
+#define GPO_MASK        0x78000000
+#define GAIN_MASK       0x07000000
+#define ADC_CFG_AUTO    0x1
+#define CTRL_REG        0x40    /* control register */
+#define TIME_BASE_REG   0x44
+#define GPO_REG         0x48
 /* </JT> */
 
 /* LOAD_REG bitmask */
-#define TDO		0x01	/* data */
-#define TCK		0x02	/* clock */
-#define TMS		0x08	/* tms */
+#define TDO             0x01    /* data */
+#define TCK             0x02    /* clock */
+#define TMS             0x08    /* tms */
 
 /* single bit setting macros */
-#define bitset(byte,mask)		((byte) |=  (mask))
-#define bitclr(byte,mask)		((byte) &= ~(mask))
-#define bitmove(byte,mask,bit)	(bit ? bitset(byte,mask) : bitclr(byte,mask))
+#define bitset(byte,mask)        ((byte) |=  (mask))
+#define bitclr(byte,mask)        ((byte) &= ~(mask))
+#define bitmove(byte,mask,bit)   (bit ? bitset(byte,mask) : bitclr(byte,mask))
 
 /* register device identifier */
-#define BIT_LOCK    0
-#define OFFSET_LOCK 4
+#define BIT_LOCK        0
+#define OFFSET_LOCK     4
 
 /* status register */
-#define BIT_BWS     0   /* BEFP(buffer enhanced factory programming) Status */
-#define BIT_BLS     1   /* block locked status, 1 = locked, 0 = unlocked */
-#define BIT_PSS     2   /* program suspend status */
-#define BIT_VPPS    3   /* VPP Status, 0 = VPP ok, 1 = VPP < VPPLK */
-#define BIT_PS      4   /* program status, 0 = successful, 1 = fail */
-#define BIT_ES      5   /* erase status, 0 = successful, 1 = fail */
-#define BIT_ESS     6   /* erase suspend status */
-#define BIT_DWS     7   /* device write status */
+#define BIT_BWS         0       /* BEFP(buffer enhanced factory programming) Status */
+#define BIT_BLS         1       /* block locked status, 1 = locked, 0 = unlocked */
+#define BIT_PSS         2       /* program suspend status */
+#define BIT_VPPS        3       /* VPP Status, 0 = VPP ok, 1 = VPP < VPPLK */
+#define BIT_PS          4       /* program status, 0 = successful, 1 = fail */
+#define BIT_ES          5       /* erase status, 0 = successful, 1 = fail */
+#define BIT_ESS         6       /* erase suspend status */
+#define BIT_DWS         7       /* device write status */
 
 #define Z188_MEASURE_MODE (1 << 27)
 
@@ -146,36 +146,36 @@ static const char RCSid[]="$Id: z188_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $";
 /* ll handle */
 typedef struct {
 	/* general */
-    MACCESS         	ma;             /* hw access handle */
-    int32           	memAlloc;		/* size allocated for the handle */
-    OSS_HANDLE      	*osHdl;         /* oss handle */
-    OSS_IRQ_HANDLE  	*irqHdl;        /* irq handle */
-    DESC_HANDLE     	*descHdl;       /* desc handle */
+	MACCESS               ma;            /* hw access handle */
+	int32                 memAlloc;      /* size allocated for the handle */
+	OSS_HANDLE            *osHdl;        /* oss handle */
+	OSS_IRQ_HANDLE        *irqHdl;       /* irq handle */
+	DESC_HANDLE           *descHdl;      /* desc handle */
 
-	MDIS_IDENT_FUNCT_TBL idFuncTbl;		/* id function table */
+	MDIS_IDENT_FUNCT_TBL  idFuncTbl;     /* id function table */
 	/* debug */
-    u_int32         	dbgLevel;		/* debug level */
-	DBG_HANDLE      	*dbgHdl;        /* debug handle */
+	u_int32               dbgLevel;      /* debug level */
+	DBG_HANDLE            *dbgHdl;       /* debug handle */
 
-    u_int32         	irqCount;       /* interrupt counter */
-	u_int32				chNumber;		/* number of channels */
-	u_int32				singleEnded;	/* single ended mode */
-	int32				nbrEnabledCh;	/* number of enabled channels */
-	u_int32				extTrig;		/* external trigger */
-	u_int32				bipolar;		/* bipolar mode */
-	u_int32				sampleAll;		/* sample all channels */
+	u_int32               irqCount;      /* interrupt counter */
+	u_int32               chNumber;      /* number of channels */
+	u_int32               singleEnded;   /* single ended mode */
+	int32                 nbrEnabledCh;  /* number of enabled channels */
+	u_int32               extTrig;       /* external trigger */
+	u_int32               bipolar;       /* bipolar mode */
+	u_int32               sampleAll;     /* sample all channels */
 	/* buffers */
-    MBUF_HANDLE     	*bufHdl;		/* input buffer handle */
+	MBUF_HANDLE           *bufHdl;       /* input buffer handle */
 
 	/* misc for M36N support */
-    u_int32         	modType;        /* MOD_ID_M36 or MOD_ID_M36N */
+	u_int32               modType;       /* MOD_ID_M36 or MOD_ID_M36N */
 
 	/* channel parameters */
-	u_int32		enable[CH_NUMBER];	/* enable/disable the channel */
-	u_int32		gain[CH_NUMBER];		/* gain factor */
-	u_int32		dataReg[CH_NUMBER];	/* data register */
-	u_int32		cfgReg[CH_NUMBER];	/* config register */
-	int32 		mmode[CH_NUMBER];	/* Measure mode */
+	u_int32        enable[CH_NUMBER];    /* enable/disable the channel */
+	u_int32        gain[CH_NUMBER];      /* gain factor */
+	u_int32        dataReg[CH_NUMBER];   /* data register */
+	u_int32        cfgReg[CH_NUMBER];    /* config register */
+	int32          mmode[CH_NUMBER];     /* Measure mode */
 } LL_HANDLE;
 
 /* include files which need LL_HANDLE */
@@ -193,19 +193,19 @@ static void InitAllChan(LL_HANDLE *llHdl);
 static void ConfigChan(LL_HANDLE *llHdl, int32 ch);
 
 static int32 Z188_Init(DESC_SPEC *descSpec, OSS_HANDLE *osHdl,
-					   MACCESS *ma, OSS_SEM_HANDLE *devSemHdl,
-					   OSS_IRQ_HANDLE *irqHdl, LL_HANDLE **llHdlP);
+                       MACCESS *ma, OSS_SEM_HANDLE *devSemHdl,
+                       OSS_IRQ_HANDLE *irqHdl, LL_HANDLE **llHdlP);
 static int32 Z188_Exit(LL_HANDLE **llHdlP );
 static int32 Z188_Read(LL_HANDLE *llHdl, int32 ch, int32 *value);
 static int32 Z188_Write(LL_HANDLE *llHdl, int32 ch, int32 value);
 static int32 Z188_SetStat(LL_HANDLE *llHdl,int32 code, int32 ch,
-							INT32_OR_64 value32_or_64);
+                          INT32_OR_64 value32_or_64);
 static int32 Z188_GetStat(LL_HANDLE *llHdl, int32 code, int32 ch,
-							INT32_OR_64 *value32_or_64P);
+                          INT32_OR_64 *value32_or_64P);
 static int32 Z188_BlockRead(LL_HANDLE *llHdl, int32 ch, void *buf, int32 size,
-							int32 *nbrRdBytesP);
+                            int32 *nbrRdBytesP);
 static int32 Z188_BlockWrite(LL_HANDLE *llHdl, int32 ch, void *buf, int32 size,
-							 int32 *nbrWrBytesP);
+                             int32 *nbrWrBytesP);
 static int32 Z188_Irq(LL_HANDLE *llHdl );
 static int32 Z188_Info(int32 infoType, ... );
 
@@ -220,25 +220,25 @@ static int32 Z188_Info(int32 infoType, ... );
  *  Globals....:  ---
  ****************************************************************************/
 #ifdef _ONE_NAMESPACE_PER_DRIVER_
-    void LL_GetEntry( LL_ENTRY* drvP )
+	void LL_GetEntry( LL_ENTRY* drvP )
 #else
-# ifdef	MAC_BYTESWAP
-	void M36_SW_GetEntry( LL_ENTRY*	drvP )
+# ifdef    MAC_BYTESWAP
+	void M36_SW_GetEntry( LL_ENTRY*    drvP )
 # else
 	void M36_GetEntry( LL_ENTRY* drvP )
 # endif
 #endif
 {
-    drvP->init        = Z188_Init;
-    drvP->exit        = Z188_Exit;
-    drvP->read        = Z188_Read;
-    drvP->write       = Z188_Write;
-    drvP->blockRead   = Z188_BlockRead;
-    drvP->blockWrite  = Z188_BlockWrite;
-    drvP->setStat     = Z188_SetStat;
-    drvP->getStat     = Z188_GetStat;
-    drvP->irq         = Z188_Irq;
-    drvP->info        = Z188_Info;
+	drvP->init        = Z188_Init;
+	drvP->exit        = Z188_Exit;
+	drvP->read        = Z188_Read;
+	drvP->write       = Z188_Write;
+	drvP->blockRead   = Z188_BlockRead;
+	drvP->blockWrite  = Z188_BlockWrite;
+	drvP->setStat     = Z188_SetStat;
+	drvP->getStat     = Z188_GetStat;
+	drvP->irq         = Z188_Irq;
+	drvP->info        = Z188_Info;
 }
 
 /******************************** Z188_Init ***********************************
@@ -266,7 +266,7 @@ static int32 Z188_Info(int32 infoType, ... );
  *                IN_BUF/HIGHWATER      320              0..max
  *                IN_BUF/TIMEOUT        1000             0..max
  *                CHANNEL_n/ENABLE      1                0..1
- *                CHANNEL_n/GAIN		0                0..3
+ *                CHANNEL_n/GAIN        0                0..3
  *
  *                PLD_LOAD defines, if the PLD should be loaded at INIT.
  *                   0 = PLD load disabled
@@ -331,40 +331,40 @@ static int32 Z188_Info(int32 infoType, ... );
  *  Globals....:  ---
  ****************************************************************************/
 static int32 Z188_Init(
-    DESC_SPEC       *descP,
-    OSS_HANDLE      *osHdl,
-    MACCESS         *ma,
-    OSS_SEM_HANDLE  *devSemHdl,
-    OSS_IRQ_HANDLE  *irqHdl,
-    LL_HANDLE       **llHdlP
+	DESC_SPEC       *descP,
+	OSS_HANDLE      *osHdl,
+	MACCESS         *ma,
+	OSS_SEM_HANDLE  *devSemHdl,
+	OSS_IRQ_HANDLE  *irqHdl,
+	LL_HANDLE       **llHdlP
 )
 {
-    LL_HANDLE *llHdl = NULL;
-    u_int32 gotsize, pldLoad, ch;
-    u_int32 bufSize, bufMode, bufTout, bufHigh, bufDbgLevel;
-    int32 error=0;
-    u_int32 value;
+	LL_HANDLE *llHdl = NULL;
+	u_int32 gotsize, pldLoad, ch;
+	u_int32 bufSize, bufMode, bufTout, bufHigh, bufDbgLevel;
+	int32 error=0;
+	u_int32 value;
 
-    /*------------------------------+
-    |  prepare the handle           |
-    +------------------------------*/
+	/*------------------------------+
+	|  prepare the handle           |
+	+------------------------------*/
 	/* alloc */
-    if ((*llHdlP = llHdl = (LL_HANDLE*)
-		 OSS_MemGet(osHdl, sizeof(LL_HANDLE), &gotsize)) == NULL)
-       return(ERR_OSS_MEM_ALLOC);
+	if ((*llHdlP = llHdl = (LL_HANDLE*)
+			OSS_MemGet(osHdl, sizeof(LL_HANDLE), &gotsize)) == NULL)
+		return(ERR_OSS_MEM_ALLOC);
 
 	/* clear */
-    OSS_MemFill(osHdl, gotsize, (char*)llHdl, 0x00);
+	OSS_MemFill(osHdl, gotsize, (char*)llHdl, 0x00);
 
 	/* init */
-    llHdl->memAlloc   = gotsize;
-    llHdl->osHdl      = osHdl;
-    llHdl->irqHdl     = irqHdl;
-    llHdl->ma		  = *ma;
+	llHdl->memAlloc   = gotsize;
+	llHdl->osHdl      = osHdl;
+	llHdl->irqHdl     = irqHdl;
+	llHdl->ma         = *ma;
 
-    /*------------------------------+
-    |  init id function table       |
-    +------------------------------*/
+	/*------------------------------+
+	|  init id function table       |
+	+------------------------------*/
 	/* drivers ident function */
 	llHdl->idFuncTbl.idCall[0].identCall = Ident;
 	llHdl->idFuncTbl.idCall[1].identCall = NULL;
@@ -375,56 +375,56 @@ static int32 Z188_Init(
 	/* terminator */
 	llHdl->idFuncTbl.idCall[5].identCall = NULL;
 
-    /*------------------------------+
-    |  prepare debugging            |
-    +------------------------------*/
-	DBG_MYLEVEL = OSS_DBG_DEFAULT;	/* set OS specific debug level */
+	/*------------------------------+
+	|  prepare debugging            |
+	+------------------------------*/
+	DBG_MYLEVEL = OSS_DBG_DEFAULT;    /* set OS specific debug level */
 	DBGINIT((NULL,&DBH));
 
-    DBGWRT_1((DBH, "LL - Z188_Init\n"));
+	DBGWRT_1((DBH, "LL - Z188_Init\n"));
 
-    /*------------------------------+
-    |  scan descriptor              |
-    +------------------------------*/
+	/*------------------------------+
+	|  scan descriptor              |
+	+------------------------------*/
 	/* prepare access */
-    if ((error = DESC_Init(descP, osHdl, &llHdl->descHdl)))
+	if ((error = DESC_Init(descP, osHdl, &llHdl->descHdl)))
 		return( Cleanup(llHdl,error) );
 
-    /* DEBUG_LEVEL_DESC */
-    if ((error = DESC_GetUInt32(llHdl->descHdl, OSS_DBG_DEFAULT,
-								&value, "DEBUG_LEVEL_DESC")) &&
+	/* DEBUG_LEVEL_DESC */
+	if ((error = DESC_GetUInt32(llHdl->descHdl, OSS_DBG_DEFAULT,
+	                            &value, "DEBUG_LEVEL_DESC")) &&
 		error != ERR_DESC_KEY_NOTFOUND)
 		return( Cleanup(llHdl,error) );
 
-	DESC_DbgLevelSet(llHdl->descHdl, value);	/* set level */
+	DESC_DbgLevelSet(llHdl->descHdl, value);    /* set level */
 
-    /* DEBUG_LEVEL_MBUF */
-    if ((error = DESC_GetUInt32(llHdl->descHdl, OSS_DBG_DEFAULT,
-								&bufDbgLevel, "DEBUG_LEVEL_MBUF")) &&
+	/* DEBUG_LEVEL_MBUF */
+	if ((error = DESC_GetUInt32(llHdl->descHdl, OSS_DBG_DEFAULT,
+	                            &bufDbgLevel, "DEBUG_LEVEL_MBUF")) &&
 		error != ERR_DESC_KEY_NOTFOUND)
 		return( Cleanup(llHdl,error) );
 
-    /* DEBUG_LEVEL */
-    if ((error = DESC_GetUInt32(llHdl->descHdl, OSS_DBG_DEFAULT,
-								&llHdl->dbgLevel, "DEBUG_LEVEL")) &&
+	/* DEBUG_LEVEL */
+	if ((error = DESC_GetUInt32(llHdl->descHdl, OSS_DBG_DEFAULT,
+	                            &llHdl->dbgLevel, "DEBUG_LEVEL")) &&
 		error != ERR_DESC_KEY_NOTFOUND)
 		return( Cleanup(llHdl,error) );
 
-    /* PLD_LOAD */
-    if ((error = DESC_GetUInt32(llHdl->descHdl, TRUE,
-								&pldLoad, "PLD_LOAD")) &&
+	/* PLD_LOAD */
+	if ((error = DESC_GetUInt32(llHdl->descHdl, TRUE,
+	                            &pldLoad, "PLD_LOAD")) &&
 		error != ERR_DESC_KEY_NOTFOUND)
 		return( Cleanup(llHdl,error) );
 
 	/* SINGLE_ENDED */
-    if ((error = DESC_GetUInt32(llHdl->descHdl, TRUE,
-								&llHdl->singleEnded, "SINGLE_ENDED")) &&
+	if ((error = DESC_GetUInt32(llHdl->descHdl, TRUE,
+	                            &llHdl->singleEnded, "SINGLE_ENDED")) &&
 		error != ERR_DESC_KEY_NOTFOUND)
 		return( Cleanup(llHdl,error) );
 
 	/* BIPOLAR */
 	if ((error = DESC_GetUInt32(llHdl->descHdl, 0, &llHdl->bipolar,
-								"BIPOLAR")) &&
+	                            "BIPOLAR")) &&
 		error != ERR_DESC_KEY_NOTFOUND)
 		return( Cleanup(llHdl,error) );
 
@@ -433,37 +433,37 @@ static int32 Z188_Init(
 
 	/* SAMPLE_ALL */
 	if ((error = DESC_GetUInt32(llHdl->descHdl, 0, &llHdl->sampleAll,
-								"SAMPLE_ALL")) &&
+	                            "SAMPLE_ALL")) &&
 		error != ERR_DESC_KEY_NOTFOUND)
 		return( Cleanup(llHdl,error) );
 
 	if (llHdl->bipolar > 1)
 		return( Cleanup(llHdl,ERR_LL_ILL_PARAM) );
 
-    /* IN_BUF/SIZE */
-    if ((error = DESC_GetUInt32(llHdl->descHdl, 320, &bufSize,
-								"IN_BUF/SIZE")) &&
+	/* IN_BUF/SIZE */
+	if ((error = DESC_GetUInt32(llHdl->descHdl, 320, &bufSize,
+	                            "IN_BUF/SIZE")) &&
 		error != ERR_DESC_KEY_NOTFOUND)
 		return( Cleanup(llHdl,error) );
 
 	if (bufSize < 8)
-       return( Cleanup(llHdl,ERR_LL_ILL_PARAM) );
+		return( Cleanup(llHdl,ERR_LL_ILL_PARAM) );
 
 	/* IN_BUF/MODE */
 	if ((error = DESC_GetUInt32(llHdl->descHdl, M_BUF_USRCTRL, &bufMode,
-								"IN_BUF/MODE")) &&
+	                            "IN_BUF/MODE")) &&
 		error != ERR_DESC_KEY_NOTFOUND)
 		return( Cleanup(llHdl,error) );
 
 	/* IN_BUF/TIMEOUT */
 	if ((error = DESC_GetUInt32(llHdl->descHdl, 1000, &bufTout,
-								"IN_BUF/TIMEOUT")) &&
+	                            "IN_BUF/TIMEOUT")) &&
 		error != ERR_DESC_KEY_NOTFOUND)
 		return( Cleanup(llHdl,error) );
 
 	/* IN_BUF/HIGHWATER */
 	if ((error = DESC_GetUInt32(llHdl->descHdl, 320, &bufHigh,
-								"IN_BUF/HIGHWATER")) &&
+	                            "IN_BUF/HIGHWATER")) &&
 		error != ERR_DESC_KEY_NOTFOUND)
 		return( Cleanup(llHdl,error) );
 
@@ -476,7 +476,7 @@ static int32 Z188_Init(
 	for (ch=0; ch<llHdl->chNumber; ch++) {
 		/* CHANNEL_n/ENABLE */
 		if ((error = DESC_GetUInt32(llHdl->descHdl, 1, &llHdl->enable[ch],
-									"CHANNEL_%d/ENABLE", ch)) &&
+		                            "CHANNEL_%d/ENABLE", ch)) &&
 			error != ERR_DESC_KEY_NOTFOUND)
 			return( Cleanup(llHdl,error) );
 
@@ -489,7 +489,7 @@ static int32 Z188_Init(
 
 		/* CHANNEL_n/GAIN */
 		if ((error = DESC_GetUInt32(llHdl->descHdl, 0, &llHdl->gain[ch],
-									"CHANNEL_%d/GAIN", ch)) &&
+		                            "CHANNEL_%d/GAIN", ch)) &&
 			error != ERR_DESC_KEY_NOTFOUND)
 			return( Cleanup(llHdl,error) );
 
@@ -497,23 +497,23 @@ static int32 Z188_Init(
 			return( Cleanup(llHdl,ERR_LL_ILL_PARAM) );
 	}
 
-    /*------------------------------+
-    |  install buffer               |
-    +------------------------------*/
+	/*------------------------------+
+	|  install buffer               |
+	+------------------------------*/
 	/* create input buffer */
 	if ((error = MBUF_Create(llHdl->osHdl, devSemHdl, llHdl,
-							 bufSize, CH_BYTES, bufMode, MBUF_RD,
-							 bufHigh, bufTout, irqHdl, &llHdl->bufHdl)))
+	                         bufSize, CH_BYTES, bufMode, MBUF_RD,
+	                         bufHigh, bufTout, irqHdl, &llHdl->bufHdl)))
 		return( Cleanup(llHdl,error) );
 
 	/* set debug level */
 	MBUF_SetStat(llHdl->bufHdl, NULL, M_BUF_RD_DEBUG_LEVEL, bufDbgLevel);
 
-    DBGWRT_1((DBH, " Z188_Init: driver build %s %s\n", __DATE__, __TIME__ ));
+	DBGWRT_1((DBH, " Z188_Init: driver build %s %s\n", __DATE__, __TIME__ ));
 
-    /*------------------------------+
-    |  init hardware                |
-    +------------------------------*/
+	/*------------------------------+
+	|  init hardware                |
+	+------------------------------*/
 	InitAllChan(llHdl);
 
 	return(error);
@@ -528,27 +528,27 @@ static int32 Z188_Init(
  *                The function calls Cleanup().
  *
  *---------------------------------------------------------------------------
- *  Input......:  llHdlP  	ptr to low level driver handle
+ *  Input......:  llHdlP      ptr to low level driver handle
  *  Output.....:  return    success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
 static int32 Z188_Exit(
-   LL_HANDLE    **llHdlP
+	LL_HANDLE    **llHdlP
 )
 {
-    LL_HANDLE *llHdl = *llHdlP;
+	LL_HANDLE *llHdl = *llHdlP;
 	int32 error = 0;
 
-    DBGWRT_1((DBH, "LL - Z188_Exit\n"));
+	DBGWRT_1((DBH, "LL - Z188_Exit\n"));
 
-    /*------------------------------+
-    |  de-init hardware             |
-    +------------------------------*/
+	/*------------------------------+
+	|  de-init hardware             |
+	+------------------------------*/
 	/* nothing to do */
 
-    /*------------------------------+
-    |  cleanup memory               |
-    +------------------------------*/
+	/*------------------------------+
+	|  cleanup memory               |
+	+------------------------------*/
 	error = Cleanup(llHdl,error);
 
 	return(error);
@@ -577,31 +577,31 @@ static int32 Z188_Exit(
  *  Globals....:  ---
  ****************************************************************************/
 static int32 Z188_Read(
-    LL_HANDLE *llHdl,
-    int32 ch,
-    int32 *value
+	LL_HANDLE *llHdl,
+	int32 ch,
+	int32 *value
 )
 {
 	int32 tmp;
 	int32 ret = ERR_SUCCESS;
-    DBGWRT_1((DBH, "LL - Z188_Read: ch=%d, addr=0x%x\n",ch, llHdl->dataReg[ch]));
+	DBGWRT_1((DBH, "LL - Z188_Read: ch=%d, addr=0x%x\n",ch, llHdl->dataReg[ch]));
 
 	*value = 0;
 
 	/* channel disabled ? */
 	if ( llHdl->enable[ch] == 0) {
-	  DBGWRT_1((DBH, "LL - Z188_Read ch=%d disabled\n", ch));
+		DBGWRT_1((DBH, "LL - Z188_Read ch=%d disabled\n", ch));
 		return(ERR_LL_READ);
 	}
 
 	/* read value of channel */
 	DBGWRT_1((DBH, "Read on register 0x%p + 0x%x\n",
-			  llHdl->ma, llHdl->dataReg[ch]));
+				llHdl->ma, llHdl->dataReg[ch]));
 	tmp = MREAD_D16(llHdl->ma, llHdl->dataReg[ch]);
 
 	/* check for overcurrent situation and return a "DEVICE SPECIFIC" error*/
 	if (ADC_OVR(tmp)) {
-	  DBGWRT_1((DBH, "LL - Z188_Read ch=%d overcurrent\n", ch));
+		DBGWRT_1((DBH, "LL - Z188_Read ch=%d overcurrent\n", ch));
 		ret = ERR_DEV;
 	}
 
@@ -627,12 +627,12 @@ static int32 Z188_Read(
  *  Globals....:  ---
  ****************************************************************************/
 static int32 Z188_Write( /* nodoc */
-    LL_HANDLE *llHdl,
-    int32 ch,
-    int32 value
+	LL_HANDLE *llHdl,
+	int32 ch,
+	int32 value
 )
 {
-    DBGWRT_1((DBH, "LL - Z188_Write: ch=%d\n",ch));
+	DBGWRT_1((DBH, "LL - Z188_Write: ch=%d\n",ch));
 
 	return(ERR_LL_ILL_FUNC);
 }
@@ -655,7 +655,7 @@ static int32 Z188_Write( /* nodoc */
  *                                      0 = disable
  *                                      1 = enable
  *                M36_CH_GAIN          gain factor of curr ch     0..3
- *					                    0 = factor 1
+ *                                        0 = factor 1
  *                                      1 = factor 2
  *                                      2 = factor 4
  *                                      3 = factor 8
@@ -681,48 +681,48 @@ static int32 Z188_Write( /* nodoc */
  *  Globals....:  ---
  ****************************************************************************/
 static int32 Z188_SetStat(
-    LL_HANDLE *llHdl,
-    int32  code,
-    int32  ch,
-    INT32_OR_64 value32_or_64
+	LL_HANDLE *llHdl,
+	int32  code,
+	int32  ch,
+	INT32_OR_64 value32_or_64
 	)
 {
-	int32		value	= (int32)value32_or_64;	/* 32bit value     */
+	int32        value    = (int32)value32_or_64;    /* 32bit value     */
 
 	int32 error = ERR_SUCCESS;
 
-    DBGWRT_1((DBH, "LL - Z188_SetStat: ch=%d code=0x%04x value=0x%x\n",
-			  ch,code,value));
+	DBGWRT_1((DBH, "LL - Z188_SetStat: ch=%d code=0x%04x value=0x%x\n",
+				ch,code,value));
 
-    switch(code) {
-        /*--------------------------+
-		 |  debug level             |
-		 +--------------------------*/
+	switch(code) {
+	/*--------------------------+
+	 |  debug level             |
+	 +--------------------------*/
 	case M_LL_DEBUG_LEVEL:
 		llHdl->dbgLevel = value;
 		break;
-        /*--------------------------+
-		  |  enable interrupts      |
-		  +------------------------*/
+	/*--------------------------+
+	 |  enable interrupts      |
+	 +------------------------*/
 	case M_MK_IRQ_ENABLE:
-		error = 0 /* ERR_LL_UNK_CODE */;	/* say: not supported */
+		error = 0 /* ERR_LL_UNK_CODE */;    /* say: not supported */
 		break;
-        /*--------------------------+
-		 |  set irq counter         |
-		 +--------------------------*/
+	/*--------------------------+
+	 |  set irq counter         |
+	 +--------------------------*/
 	case M_MK_IRQ_COUNT:
 		llHdl->irqCount = value;
 		break;
-        /*--------------------------+
-		  |  channel direction        |
-		  +--------------------------*/
+	/*--------------------------+
+	 |  channel direction        |
+	 +--------------------------*/
 	case M_LL_CH_DIR:
 		if (value != M_CH_IN)
 			error = ERR_LL_ILL_DIR;
 		break;
-        /*--------------------------+
-		  | channel enable            |
-		  +--------------------------*/
+	/*--------------------------+
+	 | channel enable            |
+	 +--------------------------*/
 	case M36_CH_ENABLE:
 		DBGWRT_1((DBH, "LL - Z188_SetStat called for channel %d\n", value));
 		if ( (value < 0) || (value > 1) ) {
@@ -737,9 +737,9 @@ static int32 Z188_SetStat(
 			InitAllChan(llHdl);
 		}
 		break;
-        /*--------------------------+
-		  |  channel gain             |
-		  +--------------------------*/
+	/*--------------------------+
+	 |  channel gain             |
+	 +--------------------------*/
 	case M36_CH_GAIN:
 		if ( (value < 0x00) || (value > 0x04 /*(M36N) was: 0x03 */) ) {
 			error = ERR_LL_ILL_PARAM;
@@ -755,9 +755,9 @@ static int32 Z188_SetStat(
 		/* configure the channel */
 		ConfigChan(llHdl, ch);
 		break;
-        /*--------------------------+
-		  |  measuring mode         |
-		  +-------------------------*/
+	/*--------------------------+
+	 |  measuring mode         |
+	 +-------------------------*/
 	case M36_BIPOLAR:
 		if ( (value < 0x00) || (value > 0x01) ) {
 			error = ERR_LL_ILL_PARAM;
@@ -768,9 +768,9 @@ static int32 Z188_SetStat(
 		/* initialize all channels */
 		InitAllChan(llHdl);
 		break;
-		/*-------------------------+
-		  |  start calibration      |
-		  +-------------------------*/
+	/*-------------------------+
+	 |  start calibration      |
+	 +-------------------------*/
 	case M36_CALIBRATE:
 		error = ERR_LL_ILL_FUNC;
 		break;
@@ -789,32 +789,32 @@ static int32 Z188_SetStat(
 		llHdl->mmode[ch] = value;
 		ConfigChan(llHdl, ch);
 		break;
-/* --- Flash Functions for internal use only! --- */
+	/* --- Flash Functions for internal use only! --- */
 
-		/*-------------------------+
-		  | Z188N Erase Calib Data   |
-		  +-------------------------*/
+	/*-------------------------+
+	 | Z188N Erase Calib Data   |
+	 +-------------------------*/
 
 	case M36_FLASH_ERASE:
 		error = ERR_LL_ILL_FUNC;
 		break;
 
-		/*--------------------------+
-		  | Z188N Flash Block Write  |
-		  +-------------------------*/
+	/*--------------------------+
+	 | Z188N Flash Block Write  |
+	 +-------------------------*/
 	case M36_BLK_FLASH:
 		error = ERR_LL_ILL_FUNC;
 		break;
 
-		/*--------------------------+
-		 |  MBUF + unknown          |
-		 +--------------------------*/
+	/*--------------------------+
+	 |  MBUF + unknown          |
+	 +--------------------------*/
 	default:
 		if (M_BUF_CODE(code))
 			error = MBUF_SetStat(llHdl->bufHdl, NULL, code, value);
 		else
 			error = ERR_LL_UNK_CODE;
-    }
+	}
 
 	return(error);
 }
@@ -843,7 +843,7 @@ static int32 Z188_SetStat(
  *                                      0 = disable
  *                                      1 = enable
  *                M36_CH_GAIN          gain factor of curr ch     0..3
- *					                    0 = factor 1
+ *                                      0 = factor 1
  *                                      1 = factor 2
  *                                      2 = factor 4
  *                                      3 = factor 8
@@ -869,123 +869,123 @@ static int32 Z188_SetStat(
  *  Globals....:  ---
  ****************************************************************************/
 static int32 Z188_GetStat(
-    LL_HANDLE *llHdl,
-    int32  code,
-    int32  ch,
-    INT32_OR_64 *value32_or_64P
+	LL_HANDLE *llHdl,
+	int32  code,
+	int32  ch,
+	INT32_OR_64 *value32_or_64P
 	)
 {
 
-	int32 *valueP		  = (int32*)value32_or_64P;	/* pointer to 32bit value  */
-	INT32_OR_64	*value64P = value32_or_64P;		 	/* stores 32/64bit pointer  */
-	M_SG_BLOCK	*blk	  = (M_SG_BLOCK*)value32_or_64P; /* stores block struct pointer */
+	int32       *valueP   = (int32*)value32_or_64P;      /* pointer to 32bit value  */
+	INT32_OR_64 *value64P = value32_or_64P;              /* stores 32/64bit pointer  */
+	M_SG_BLOCK  *blk      = (M_SG_BLOCK*)value32_or_64P; /* stores block struct pointer */
 
-	u_int32 i = 0;
-	int32 error = ERR_SUCCESS;
+	u_int32 i     = 0;
+	int32   error = ERR_SUCCESS;
 	u_int32 lo=0, hi=0, lo1=0, hi1=0, lo2=0, hi2=0, longval=0;
 
-    DBGWRT_1((DBH, "LL - Z188_GetStat: ch=%d code=0x%04x\n",  ch,code));
+	DBGWRT_1((DBH, "LL - Z188_GetStat: ch=%d code=0x%04x\n",  ch,code));
 
-    switch(code)
-    {
-        /*--------------------------+
-		  |  debug level              |
-		  +--------------------------*/
+	switch(code)
+	{
+	/*--------------------------+
+	 |  debug level              |
+	 +--------------------------*/
 	case M_LL_DEBUG_LEVEL:
 		*valueP = llHdl->dbgLevel;
 		break;
-        /*--------------------------+
-		  |  nr of channels           |
-		  +--------------------------*/
+	/*--------------------------+
+	 |  nr of channels           |
+	 +--------------------------*/
 	case M_LL_CH_NUMBER:
 		*valueP = llHdl->chNumber;
 		break;
-        /*--------------------------+
-		  |  channel direction        |
-		  +--------------------------*/
+	/*--------------------------+
+	 |  channel direction        |
+	 +--------------------------*/
 	case M_LL_CH_DIR:
 		*valueP = M_CH_IN;
 		break;
-        /*--------------------------+
-		  |  channel length [bits]    |
-		  +--------------------------*/
+	/*--------------------------+
+	 |  channel length [bits]    |
+	 +--------------------------*/
 	case M_LL_CH_LEN:
 		*valueP = 16;
 		break;
-        /*--------------------------+
-		  |  channel type info        |
-		  +--------------------------*/
+	/*--------------------------+
+	 |  channel type info        |
+	 +--------------------------*/
 	case M_LL_CH_TYP:
 		*valueP = M_CH_ANALOG;
 		break;
-        /*--------------------------+
-		  |  irq counter              |
-		  +--------------------------*/
+	/*--------------------------+
+	 |  irq counter              |
+	 +--------------------------*/
 	case M_LL_IRQ_COUNT:
 		*valueP = llHdl->irqCount;
 		break;
-        /*--------------------------+
-		  |   id prom size            |
-		  +--------------------------*/
+	/*--------------------------+
+	 |   id prom size            |
+	 +--------------------------*/
 	case M_LL_ID_SIZE:
 		*valueP = MOD_ID_SIZE;
 		break;
-        /*--------------------------+
-		  |   id prom data            |
-		  +--------------------------*/
+	/*--------------------------+
+	 |   id prom data            |
+	 +--------------------------*/
 	case M_LL_BLK_ID_DATA:
 	{
 		u_int32 n;
 		u_int16 *dataP = (u_int16*)blk->data;
 
-		if (blk->size < MOD_ID_SIZE)		/* check buf size */
+		if (blk->size < MOD_ID_SIZE)      /* check buf size */
 			return(ERR_LL_USERBUF);
 
-		for (n=0; n<MOD_ID_SIZE/2; n++)		/* read MOD_ID_SIZE/2 words */
+		for (n=0; n<MOD_ID_SIZE/2; n++)   /* read MOD_ID_SIZE/2 words */
 			*dataP++ = (int16)m_read((U_INT32_OR_64)llHdl->ma, (int8)n);
 
 		break;
 	}
 	/*--------------------------+
-	  |   ident table pointer     |
-	  |   (treat as non-block!)   |
-	  +--------------------------*/
+	 |   ident table pointer     |
+	 |   (treat as non-block!)   |
+	 +--------------------------*/
 	case M_MK_BLK_REV_ID:
 		*value64P = (INT32_OR_64)&llHdl->idFuncTbl;
 		break;
-        /*--------------------------+
-		  | channel enable            |
-		  +--------------------------*/
+	/*--------------------------+
+	 | channel enable            |
+	 +--------------------------*/
 	case M36_CH_ENABLE:
 		*valueP = (int32)llHdl->enable[ch];
 		break;
-        /*--------------------------+
-		  |  channel gain             |
-		  +--------------------------*/
+	/*--------------------------+
+	 |  channel gain             |
+	 +--------------------------*/
 	case M36_CH_GAIN:
 		*valueP = (int32)llHdl->gain[ch];
 		break;
-        /*--------------------------+
-		  |  measuring mode           |
-		  +--------------------------*/
+	/*--------------------------+
+	 |  measuring mode           |
+	 +--------------------------*/
 	case M36_BIPOLAR:
 		*valueP = (int32)llHdl->bipolar;
 		break;
-        /*--------------------------+
-		  | single ended            |
-		  +-------------------------*/
+	/*--------------------------+
+	 | single ended            |
+	 +-------------------------*/
 	case M36_SINGLE_ENDED:
 		*valueP = (int32)llHdl->singleEnded;
 		break;
-        /*--------------------------+
-		  | number of enabled chan  |
-		  +-------------------------*/
+	/*--------------------------+
+	 | number of enabled chan  |
+	 +-------------------------*/
 	case M36_NBR_ENABLED_CH:
 		*valueP = llHdl->nbrEnabledCh;
 		break;
-        /*--------------------------+
-		  | Dump Register space     |
-		  +--------------------------*/
+	/*--------------------------+
+	 | Dump Register space     |
+	 +--------------------------*/
 	case M36_REG_DUMP:
 		DBGWRT_2((DBH, "LL - M36_REG_DUMP Dump Registers:"));
 		for ( i = 0; i < 0x100; i +=2 ) {
@@ -997,18 +997,18 @@ static int32 Z188_GetStat(
 		break;
 
 
-		/* ---	For MEN internal use only --- */
+	/* ---    For MEN internal use only --- */
 
-		/*-------------------------+
-		 | Flash Block Read        |
-		 +-------------------------*/
+	/*-------------------------+
+	 | Flash Block Read        |
+	 +-------------------------*/
 	case M36_BLK_FLASH:
 		error = ERR_LL_UNK_CODE;
 		break;
 
-        /*--------------------------+
-		 | Get 18bit raw ADC values |
-		 +--------------------------*/
+	/*--------------------------+
+	 | Get 18bit raw ADC values |
+	 +--------------------------*/
 	case M36_GET_RAWDAT:
 		do {
 			/*
@@ -1036,15 +1036,15 @@ static int32 Z188_GetStat(
 	case Z188_MODE:
 		*valueP = (int32)llHdl->mmode[ch];
 		break;
-        /*--------------------------+
-		 |  MBUF + unknown          |
-		 +--------------------------*/
+	/*--------------------------+
+	 |  MBUF + unknown          |
+	 +--------------------------*/
 	default:
 		if (M_BUF_CODE(code))
 			error = MBUF_GetStat(llHdl->bufHdl, NULL, code, valueP);
 		else
 			error = ERR_LL_UNK_CODE;
-    }
+	}
 
 	return(error);
 }
@@ -1104,19 +1104,19 @@ static int32 Z188_GetStat(
  *  Globals....:  ---
  ****************************************************************************/
 static int32 Z188_BlockRead(
-     LL_HANDLE *llHdl,
-     int32     ch,
-     void      *buf,
-     int32     size,
-     int32     *nbrRdBytesP
+	LL_HANDLE *llHdl,
+	int32     ch,
+	void      *buf,
+	int32     size,
+	int32     *nbrRdBytesP
 )
 {
 	u_int16 *bufP = (u_int16*)buf;
-    u_int32 n;
+	u_int32 n;
 	int32 bufMode;
 	int32 error;
 
-    DBGWRT_1((DBH, "LL - Z188_BlockRead: ch=%d, size=%d\n",ch,size));
+	DBGWRT_1((DBH, "LL - Z188_BlockRead: ch=%d, size=%d\n",ch,size));
 
 	/* get current buffer mode */
 	if ((error = MBUF_GetBufferMode(llHdl->bufHdl, &bufMode)))
@@ -1148,7 +1148,7 @@ static int32 Z188_BlockRead(
 	else {
 		/* read from buffer */
 		if ((error = MBUF_Read(llHdl->bufHdl,
-							   (u_int8*)bufP, size, nbrRdBytesP)))
+								(u_int8*)bufP, size, nbrRdBytesP)))
 			return(error);
 	}
 
@@ -1171,15 +1171,15 @@ static int32 Z188_BlockRead(
  *                return       success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
-static int32 Z188_BlockWrite(	/* nodoc */
-     LL_HANDLE *llHdl,
-     int32     ch,
-     void      *buf,
-     int32     size,
-     int32     *nbrWrBytesP
+static int32 Z188_BlockWrite(    /* nodoc */
+	LL_HANDLE *llHdl,
+	int32     ch,
+	void      *buf,
+	int32     size,
+	int32     *nbrWrBytesP
 )
 {
-    DBGWRT_1((DBH, "LL - Z188_BlockWrite: ch=%d, size=%d\n",ch,size));
+	DBGWRT_1((DBH, "LL - Z188_BlockWrite: ch=%d, size=%d\n",ch,size));
 
 	/* return nr of written bytes */
 	*nbrWrBytesP = 0;
@@ -1212,22 +1212,22 @@ static int32 Z188_BlockWrite(	/* nodoc */
  *
  *---------------------------------------------------------------------------
  *  Input......:  llHdl    ll handle
- *  Output.....:  return   LL_IRQ_DEVICE	irq caused from device
+ *  Output.....:  return   LL_IRQ_DEVICE    irq caused from device
  *                         LL_IRQ_DEV_NOT   irq not caused from device
  *                         LL_IRQ_UNKNOWN   unknown
  *  Globals....:  ---
  ****************************************************************************/
 static int32 Z188_Irq(
-   LL_HANDLE *llHdl
+	LL_HANDLE *llHdl
 )
 {
 	u_int16 *bufP;
-	int32	got;
-	u_int32	ch;
-	int32	nbrRdCh = 0;	/* number of read channels */
-	int32	nbrOfBlocks;
+	int32    got;
+	u_int32  ch;
+	int32    nbrRdCh = 0;    /* number of read channels */
+	int32    nbrOfBlocks;
 
-    IDBGWRT_1((DBH, "LL - Z188_Irq:\n"));
+	IDBGWRT_1((DBH, "LL - Z188_Irq:\n"));
 
 	/*----------------------+
 	| reset irq             |
@@ -1251,8 +1251,8 @@ static int32 Z188_Irq(
 				*bufP++ = MREAD_D16(llHdl->ma, llHdl->dataReg[ch]);
 				nbrRdCh++;
 
-				if( (nbrRdCh < llHdl->nbrEnabledCh)	/* read another channel ? */
-					&& (nbrRdCh == got) ) {			/* got space full ? */
+				if( (nbrRdCh < llHdl->nbrEnabledCh)    /* read another channel ? */
+					&& (nbrRdCh == got) ) {            /* got space full ? */
 
 					/* calculate missing buffer space */
 					nbrOfBlocks = llHdl->nbrEnabledCh - nbrRdCh;
@@ -1262,21 +1262,21 @@ static int32 Z188_Irq(
 											nbrOfBlocks, &got)) == 0 ) {
 						/* wrap around failed */
 						IDBGWRT_ERR((DBH,
-									 "*** LL - Z188_Irq: wrap around failed\n"));
+									"*** LL - Z188_Irq: wrap around failed\n"));
 						break;
 					}
 					IDBGWRT_3((DBH,
-						 "LL - Z188_Irq: nbrRdCh=%d, nbrOfBlocks=%d, got=%d\n",
+						"LL - Z188_Irq: nbrRdCh=%d, nbrOfBlocks=%d, got=%d\n",
 						nbrRdCh,nbrOfBlocks,got));
 				}
 			}
 		} /*for*/
 
-        MBUF_ReadyBuf( llHdl->bufHdl );  /* blockread ready */
-    }
+		MBUF_ReadyBuf( llHdl->bufHdl );  /* blockread ready */
+	}
 	llHdl->irqCount++;
 
-	return(LL_IRQ_UNKNOWN);		/* say: unknown */
+	return(LL_IRQ_UNKNOWN);        /* say: unknown */
 }
 
 /****************************** Z188_Info ************************************
@@ -1312,96 +1312,96 @@ static int32 Z188_Irq(
  *                mode is required from the driver (LL_LOCK_xxx).
  *
  *---------------------------------------------------------------------------
- *  Input......:  infoType	   info code
+ *  Input......:  infoType     info code
  *                ...          argument(s)
  *  Output.....:  return       success (0) or error code
  *  Globals....:  ---
  ****************************************************************************/
 static int32 Z188_Info(
-   int32  infoType,
-   ...
+	int32  infoType,
+	...
 )
 {
-    int32   error = ERR_SUCCESS;
-    va_list argptr;
+	int32   error = ERR_SUCCESS;
+	va_list argptr;
 
-    va_start(argptr, infoType );
+	va_start(argptr, infoType );
 
-    switch(infoType) {
-		/*-------------------------------+
-        |  hardware characteristics      |
-        |  (all addr/data modes OR'ed)   |
-        +-------------------------------*/
-        case LL_INFO_HW_CHARACTER:
-		{
-			u_int32 *addrModeP = va_arg(argptr, u_int32*);
-			u_int32 *dataModeP = va_arg(argptr, u_int32*);
+	switch(infoType) {
+	/*-------------------------------+
+	|  hardware characteristics      |
+	|  (all addr/data modes OR'ed)   |
+	+-------------------------------*/
+	case LL_INFO_HW_CHARACTER:
+	{
+		u_int32 *addrModeP = va_arg(argptr, u_int32*);
+		u_int32 *dataModeP = va_arg(argptr, u_int32*);
 
+		*addrModeP = MDIS_MA08;
+		*dataModeP = MDIS_MD08 | MDIS_MD16;
+		break;
+	}
+	/*-------------------------------+
+	|  nr of required address spaces |
+	|  (total spaces used)           |
+	+-------------------------------*/
+	case LL_INFO_ADDRSPACE_COUNT:
+	{
+		u_int32 *nbrOfAddrSpaceP = va_arg(argptr, u_int32*);
+
+		*nbrOfAddrSpaceP = ADDRSPACE_COUNT;
+		break;
+	}
+	/*-------------------------------+
+	|  address space type            |
+	|  (widest used data mode)       |
+	+-------------------------------*/
+	case LL_INFO_ADDRSPACE:
+	{
+		u_int32 addrSpaceIndex = va_arg(argptr, u_int32);
+		u_int32 *addrModeP = va_arg(argptr, u_int32*);
+		u_int32 *dataModeP = va_arg(argptr, u_int32*);
+		u_int32 *addrSizeP = va_arg(argptr, u_int32*);
+
+		if (addrSpaceIndex >= ADDRSPACE_COUNT)
+			error = ERR_LL_ILL_PARAM;
+		else {
 			*addrModeP = MDIS_MA08;
-			*dataModeP = MDIS_MD08 | MDIS_MD16;
-			break;
-	    }
-		/*-------------------------------+
-        |  nr of required address spaces |
-        |  (total spaces used)           |
-        +-------------------------------*/
-        case LL_INFO_ADDRSPACE_COUNT:
-		{
-			u_int32 *nbrOfAddrSpaceP = va_arg(argptr, u_int32*);
+			*dataModeP = MDIS_MD16;
+			*addrSizeP = ADDRSPACE_SIZE;
+		}
 
-			*nbrOfAddrSpaceP = ADDRSPACE_COUNT;
-			break;
-	    }
-		/*-------------------------------+
-        |  address space type            |
-        |  (widest used data mode)       |
-        +-------------------------------*/
-        case LL_INFO_ADDRSPACE:
-		{
-			u_int32 addrSpaceIndex = va_arg(argptr, u_int32);
-			u_int32 *addrModeP = va_arg(argptr, u_int32*);
-			u_int32 *dataModeP = va_arg(argptr, u_int32*);
-			u_int32 *addrSizeP = va_arg(argptr, u_int32*);
+		break;
+	}
+	/*-------------------------------+
+	|   interrupt required           |
+	+-------------------------------*/
+	case LL_INFO_IRQ:
+	{
+		u_int32 *useIrqP = va_arg(argptr, u_int32*);
 
-			if (addrSpaceIndex >= ADDRSPACE_COUNT)
-				error = ERR_LL_ILL_PARAM;
-			else {
-				*addrModeP = MDIS_MA08;
-				*dataModeP = MDIS_MD16;
-				*addrSizeP = ADDRSPACE_SIZE;
-			}
+		*useIrqP = USE_IRQ;
+		break;
+	}
+	/*-------------------------------+
+	|   process lock mode            |
+	+-------------------------------*/
+	case LL_INFO_LOCKMODE:
+	{
+		u_int32 *lockModeP = va_arg(argptr, u_int32*);
 
-			break;
-	    }
-		/*-------------------------------+
-        |   interrupt required           |
-        +-------------------------------*/
-        case LL_INFO_IRQ:
-		{
-			u_int32 *useIrqP = va_arg(argptr, u_int32*);
+		*lockModeP = LL_LOCK_CALL;
+		break;
+	}
+	/*-------------------------------+
+	|   (unknown)                    |
+	+-------------------------------*/
+	default:
+		error = ERR_LL_ILL_PARAM;
+	}
 
-			*useIrqP = USE_IRQ;
-			break;
-	    }
-		/*-------------------------------+
-        |   process lock mode            |
-        +-------------------------------*/
-        case LL_INFO_LOCKMODE:
-		{
-			u_int32 *lockModeP = va_arg(argptr, u_int32*);
-
-			*lockModeP = LL_LOCK_CALL;
-			break;
-	    }
-		/*-------------------------------+
-        |   (unknown)                    |
-        +-------------------------------*/
-        default:
-          error = ERR_LL_ILL_PARAM;
-    }
-
-    va_end(argptr);
-    return(error);
+	va_end(argptr);
+	return(error);
 }
 
 /*******************************  Ident  ************************************
@@ -1415,28 +1415,28 @@ static int32 Z188_Info(
  ****************************************************************************/
 static char* Ident( void )
 {
-    return( "Z188 - Z188 low level driver: $Id: z188_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $" );
+	return( "Z188 - Z188 low level driver: $Id: z188_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $" );
 }
 
 /********************************* Cleanup **********************************
  *
  *  Description:  Close all handles, free memory and return error code
- *		          NOTE: The ll handle is invalid after calling this function
+ *                  NOTE: The ll handle is invalid after calling this function
  *
  *---------------------------------------------------------------------------
- *  Input......:  llHdl		ll handle
- *                retCode	return value
- *  Output.....:  return	retCode
+ *  Input......:  llHdl     ll handle
+ *                retCode   return value
+ *  Output.....:  return    retCode
  *  Globals....:  -
  ****************************************************************************/
-static int32 Cleanup(	/* nodoc */
-   LL_HANDLE    *llHdl,
-   int32        retCode
+static int32 Cleanup(    /* nodoc */
+	LL_HANDLE    *llHdl,
+	int32        retCode
 )
 {
-    /*------------------------------+
-    |  close handles                |
-    +------------------------------*/
+	/*------------------------------+
+	|  close handles                |
+	+------------------------------*/
 	/* clean up desc */
 	if (llHdl->descHdl)
 		DESC_Exit(&llHdl->descHdl);
@@ -1448,15 +1448,15 @@ static int32 Cleanup(	/* nodoc */
 	/* cleanup debug */
 	DBGEXIT((&DBH));
 
-    /*------------------------------+
-    |  free memory                  |
-    +------------------------------*/
-    /* free my handle */
-    OSS_MemFree(llHdl->osHdl, (int8*)llHdl, llHdl->memAlloc);
+	/*------------------------------+
+	|  free memory                  |
+	+------------------------------*/
+	/* free my handle */
+	OSS_MemFree(llHdl->osHdl, (int8*)llHdl, llHdl->memAlloc);
 
-    /*------------------------------+
-    |  return error code            |
-    +------------------------------*/
+	/*------------------------------+
+	|  return error code            |
+	+------------------------------*/
 	return(retCode);
 }
 
@@ -1468,29 +1468,29 @@ static int32 Cleanup(	/* nodoc */
  *                - set for each channel: measuring mode and gain factor
  *
  *---------------------------------------------------------------------------
- *  Input......:  llHdl		ll handle
+ *  Input......:  llHdl        ll handle
  *  Output.....:  ---
  *  Globals....:  ---
  ****************************************************************************/
-static void InitAllChan(	/* nodoc */
+static void InitAllChan(    /* nodoc */
 	LL_HANDLE *llHdl
 )
 {
-	u_int16 ch;			/* current channel */
+	u_int16 ch;            /* current channel */
 	u_int32 cfg;
 
-    DBGWRT_1((DBH, "LL - Z188: InitAllChan\n"));
+	DBGWRT_1((DBH, "LL - Z188: InitAllChan\n"));
 
 	cfg = MREAD_D32(llHdl->ma, CTRL_REG);
 	if (!(cfg & ADC_CFG_AUTO)) {
-    DBGWRT_1((DBH, "LL - Z188: Enable ADC automode\n"));
+	DBGWRT_1((DBH, "LL - Z188: Enable ADC automode\n"));
 		cfg |= ADC_CFG_AUTO;
 		MWRITE_D32(llHdl->ma, CTRL_REG, cfg);
 	}
 
 	/* search for enabled channels */
 	for (ch=0; ch<llHdl->chNumber; ch++) {
-	  if (ch > 7) continue;	/* XXX HACK! */
+		if (ch > 7) continue;    /* XXX HACK! */
 		if ( (llHdl->sampleAll) || (llHdl->enable[ch])) {
 			/* assign data register to channel */
 			llHdl->dataReg[ch] = ch * 4;
@@ -1506,30 +1506,30 @@ static void InitAllChan(	/* nodoc */
  *                - set gain factor
  *
  *---------------------------------------------------------------------------
- *  Input......:  llHdl		ll handle
+ *  Input......:  llHdl     ll handle
  *                ch        current channel
  *  Output.....:  ---
  *  Globals....:  ---
  ****************************************************************************/
-static void ConfigChan(	/* nodoc */
+static void ConfigChan(    /* nodoc */
 	LL_HANDLE *llHdl,
 	int32     ch
 )
 {
-	u_int32 cfg;		/* config data */
+	u_int32 cfg;        /* config data */
 
-    DBGWRT_1((DBH, "LL - Z188: ConfigChan\n"));
+	DBGWRT_1((DBH, "LL - Z188: ConfigChan\n"));
 
 	cfg = MREAD_D32(llHdl->ma, llHdl->dataReg[ch]);
 
-    /* Set gain to 0 */
+	/* Set gain to 0 */
 	cfg &= ~0x0700000;
-    /* Set measute mode (Voltage or Current) */
-    if (llHdl->mmode[ch] == Z188_MODE_CURRENT) {
+	/* Set measute mode (Voltage or Current) */
+	if (llHdl->mmode[ch] == Z188_MODE_CURRENT) {
 		bitset(cfg, Z188_MEASURE_MODE);
-    } else {
+	} else {
 		bitclr(cfg, Z188_MEASURE_MODE);
-    }
+	}
 	MWRITE_D32(llHdl->ma, llHdl->dataReg[ch], cfg);
 	cfg = MREAD_D32(llHdl->ma, llHdl->dataReg[ch]);
 
