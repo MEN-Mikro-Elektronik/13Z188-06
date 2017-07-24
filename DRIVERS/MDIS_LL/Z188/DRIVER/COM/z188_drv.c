@@ -181,7 +181,7 @@ typedef struct {
 /* include files which need LL_HANDLE */
 #include <MEN/ll_entry.h>   /* low level driver jumptable  */
 #include <MEN/m36_drv.h>    /* M36 driver header file */
-#include "z188_drv.h"       /* Extensions for Z188 */
+#include <MEN/z188_drv.h>   /* Extensions for Z188 */
 
 
 /*-----------------------------------------+
