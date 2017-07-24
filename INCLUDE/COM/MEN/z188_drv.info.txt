@@ -1,3 +1,0 @@
-
-Z188 Driver is based on M36 and still uses preprocessor macros from there:
-INCLUDE/COM/MEN/m36_drv.h

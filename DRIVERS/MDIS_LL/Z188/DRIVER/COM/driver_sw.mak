@@ -39,6 +39,7 @@ MAK_LIBS=$(LIB_PREFIX)$(MEN_LIB_DIR)/desc$(LIB_SUFFIX)		\
 
 MAK_INCL=$(MEN_MOD_DIR)/z188_pld.h    \
 		 $(MEN_INC_DIR)/m36_drv.h     \
+         $(MEN_INC_DIR)/z188_drv.h     \
          $(MEN_INC_DIR)/men_typs.h    \
          $(MEN_INC_DIR)/oss.h         \
          $(MEN_INC_DIR)/mdis_err.h    \
@@ -53,9 +54,8 @@ MAK_INCL=$(MEN_MOD_DIR)/z188_pld.h    \
          $(MEN_INC_DIR)/dbg.h    \
 
 MAK_INP1=z188_drv$(INP_SUFFIX)
-MAK_INP2=z188_pld$(INP_SUFFIX)
 
-MAK_INP=$(MAK_INP1) $(MAK_INP2)
+MAK_INP=$(MAK_INP1)
 
 
 
