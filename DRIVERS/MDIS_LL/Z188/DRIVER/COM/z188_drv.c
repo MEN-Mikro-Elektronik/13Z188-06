@@ -86,8 +86,7 @@ static const char RCSid[]="$Id: z188_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $";
 |  DEFINES                                 |
 +-----------------------------------------*/
 /* general */
-#define CH_NUMBER_SINGLE	16	/* nr of device channels (single ended mode) */
-#define CH_NUMBER_DIFF		8	/* nr of device channels (differential mode) */
+#define CH_NUMBER	8	/* nr of device channels */
 #define CH_BYTES			2		/* nr of bytes per channel */
 #define USE_IRQ				TRUE	/* interrupt required  */
 #define ADDRSPACE_COUNT		1		/* nr of required address spaces */
@@ -103,29 +102,17 @@ static const char RCSid[]="$Id: z188_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $";
 #define DBG_MYLEVEL			llHdl->dbgLevel
 #define DBH					llHdl->dbgHdl
 
+/* <JT> */
 /* register offsets */
-#define DATA_REG(i)	((0x0 + (i)) & 0x00ffffff)	/* data register    0..15 */
-/* #define ADR_REG(i)	(0x20 + ((i)<<1)) */	/* address register 0..15 */
-#define CFG_REG(i)		((0x0 + (i)) & 0xff000000)	/* config register  0..15 */
-#define STAT_REG	0x60				/* status  register */
+#define ADC_DATA(x)		(((x) & 0x7ffffc) >> 2)
+#define ADC_OVR(x)		((x) & 0x1)
+#define GPO_MASK		0x78000000
+#define GAIN_MASK		0x07000000
+#define ADC_CFG_AUTO	0x1
 #define CTRL_REG		0x40				/* control register */
 #define TIME_BASE_REG	0x44
 #define GPO_REG			0x48
-
-#define OVR(x)			((x) & 0x1)
-#define GPO_MASK		0x78000000
-#define GAIN_MASK		0x07000000
-
-
-/* CTRL_REG bitmask */
-#define RST		0x04	/* IRQ reset pending irq */
-#define CAL		0x02	/* CAL calibration mode */
-#define EXT		0x01	/* SMP external trigger */
-
-/* CTRLSTAT_REG bitmask */
-#define IRQ		0x04	/* IRQ  irq not active */
-#define BIN		0x02	/* BI   binary input status */
-#define BUSY	0x01	/* BUSY calibration in progress */
+/* </JT> */
 
 /* LOAD_REG bitmask */
 #define TDO		0x01	/* data */
@@ -151,6 +138,7 @@ static const char RCSid[]="$Id: z188_drv.c,v 1.11 2010/09/21 17:47:59 ts Exp $";
 #define BIT_ESS     6   /* erase suspend status */
 #define BIT_DWS     7   /* device write status */
 
+#define Z188_MEASURE_MODE (1 << 27)
 
 /*-----------------------------------------+
 |  TYPEDEFS                                |
@@ -170,7 +158,6 @@ typedef struct {
 	DBG_HANDLE      	*dbgHdl;        /* debug handle */
 
     u_int32         	irqCount;       /* interrupt counter */
-    u_int32         	idCheck;		/* id check enabled */
 	u_int32				chNumber;		/* number of channels */
 	u_int32				singleEnded;	/* single ended mode */
 	int32				nbrEnabledCh;	/* number of enabled channels */
@@ -184,15 +171,17 @@ typedef struct {
     u_int32         	modType;        /* MOD_ID_M36 or MOD_ID_M36N */
 
 	/* channel parameters */
-	u_int32		enable[CH_NUMBER_SINGLE];	/* enable/disable the channel */
-	u_int32		gain[CH_NUMBER_SINGLE];		/* gain factor */
-	u_int32		dataReg[CH_NUMBER_SINGLE];	/* data register */
-	u_int32		cfgReg[CH_NUMBER_SINGLE];	/* config register */
+	u_int32		enable[CH_NUMBER];	/* enable/disable the channel */
+	u_int32		gain[CH_NUMBER];		/* gain factor */
+	u_int32		dataReg[CH_NUMBER];	/* data register */
+	u_int32		cfgReg[CH_NUMBER];	/* config register */
+	int32 		mmode[CH_NUMBER];	/* Measure mode */
 } LL_HANDLE;
 
 /* include files which need LL_HANDLE */
 #include <MEN/ll_entry.h>   /* low level driver jumptable  */
 #include <MEN/m36_drv.h>    /* M36 driver header file */
+#include "z188_drv.h"       /* Extensions for Z188 */
 
 
 /*-----------------------------------------+
@@ -270,7 +259,6 @@ static int32 Z188_Info(int32 infoType, ... );
  *                ID_CHECK              1                0..1
  *                PLD_LOAD              1                0..1
  *                SINGLE_ENDED          1                0..1
- *                EXT_TRIG              1                0..1
  *                BIPOLAR               0                0..1
  *                SAMPLE_ALL            0                0..1
  *                IN_BUF/MODE           0                0..3
@@ -291,11 +279,6 @@ static int32 Z188_Info(int32 infoType, ... );
  *
  *                   0 = differential
  *                   1 = single ended
- *
- *                EXT_TRIG defines the sampling mode
- *
- *                   0 = internal trigger (100kHz)
- *                   1 = external trigger (1..90kHz)
  *
  *                BIPOLAR defines the measuring mode of all channels.
  *
@@ -427,40 +410,17 @@ static int32 Z188_Init(
 		error != ERR_DESC_KEY_NOTFOUND)
 		return( Cleanup(llHdl,error) );
 
-    /* ID_CHECK */
-    if ((error = DESC_GetUInt32(llHdl->descHdl, TRUE,
-								&llHdl->idCheck, "ID_CHECK")) &&
-		error != ERR_DESC_KEY_NOTFOUND)
-		return( Cleanup(llHdl,error) );
-
     /* PLD_LOAD */
     if ((error = DESC_GetUInt32(llHdl->descHdl, TRUE,
 								&pldLoad, "PLD_LOAD")) &&
 		error != ERR_DESC_KEY_NOTFOUND)
 		return( Cleanup(llHdl,error) );
 
-	if (pldLoad == FALSE)
-		llHdl->idCheck = FALSE;
-
 	/* SINGLE_ENDED */
     if ((error = DESC_GetUInt32(llHdl->descHdl, TRUE,
 								&llHdl->singleEnded, "SINGLE_ENDED")) &&
 		error != ERR_DESC_KEY_NOTFOUND)
 		return( Cleanup(llHdl,error) );
-
-    if( llHdl->singleEnded == TRUE )
-        llHdl->chNumber = CH_NUMBER_SINGLE;
-    else
-        llHdl->chNumber = CH_NUMBER_DIFF;
-
-	/* EXT_TRIG */
-    if ((error = DESC_GetUInt32(llHdl->descHdl, TRUE,
-								&llHdl->extTrig, "EXT_TRIG")) &&
-		error != ERR_DESC_KEY_NOTFOUND)
-		return( Cleanup(llHdl,error) );
-
-		if (llHdl->extTrig > 1)
-			return( Cleanup(llHdl,ERR_LL_ILL_PARAM) );
 
 	/* BIPOLAR */
 	if ((error = DESC_GetUInt32(llHdl->descHdl, 0, &llHdl->bipolar,
@@ -510,6 +470,8 @@ static int32 Z188_Init(
 	/* clear number of enabled channels */
 	llHdl->nbrEnabledCh = 0;
 
+	llHdl->chNumber = CH_NUMBER;
+
 	/* channel params */
 	for (ch=0; ch<llHdl->chNumber; ch++) {
 		/* CHANNEL_n/ENABLE */
@@ -547,40 +509,11 @@ static int32 Z188_Init(
 	/* set debug level */
 	MBUF_SetStat(llHdl->bufHdl, NULL, M_BUF_RD_DEBUG_LEVEL, bufDbgLevel);
 
-    /*------------------------------+
-    |  check module id              |
-    +------------------------------*/
-	if (llHdl->idCheck) {
-		int modIdMagic = m_read((U_INT32_OR_64)llHdl->ma, 0);
-		int modId      = m_read((U_INT32_OR_64)llHdl->ma, 1);
-
-		if (modIdMagic != MOD_ID_MAGIC) {
-			DBGWRT_ERR((DBH,
-						" *** Z188_Init: illegal magic=0x%04x\n",modIdMagic));
-			error = ERR_LL_ILL_ID;
-			return( Cleanup(llHdl,error) );
-		}
-
-		if ((modId != MOD_ID_M36) && (modId != MOD_ID_M36N)) {
-			DBGWRT_ERR((DBH," *** Z188_Init: illegal id=%d\n",modId));
-			error = ERR_LL_ILL_ID;
-			return( Cleanup(llHdl,error) );
-		}
-
-		/* store type for later use in calibration Function */
-		llHdl->modType = modId;
-
-	}
-
     DBGWRT_1((DBH, " Z188_Init: driver build %s %s\n", __DATE__, __TIME__ ));
 
     /*------------------------------+
     |  init hardware                |
     +------------------------------*/
-	/* config the trigger mode */
-	MWRITE_D16(llHdl->ma, CTRL_REG, llHdl->extTrig ? EXT : 0x00);
-
-	/* initialize all channels */
 	InitAllChan(llHdl);
 
 	return(error);
@@ -651,7 +584,7 @@ static int32 Z188_Read(
 {
 	int32 tmp;
 	int32 ret = ERR_SUCCESS;
-    DBGWRT_1((DBH, "LL - Z188_Read: ch=%d\n",ch));
+    DBGWRT_1((DBH, "LL - Z188_Read: ch=%d, addr=0x%x\n",ch, llHdl->dataReg[ch]));
 
 	*value = 0;
 
@@ -667,11 +600,14 @@ static int32 Z188_Read(
 	tmp = MREAD_D16(llHdl->ma, llHdl->dataReg[ch]);
 
 	/* check for overcurrent situation and return a "DEVICE SPECIFIC" error*/
-	if (OVR(tmp)) {
+	if (ADC_OVR(tmp)) {
 	  DBGWRT_1((DBH, "LL - Z188_Read ch=%d overcurrent\n", ch));
 		ret = ERR_DEV;
 	}
-	*value = ((tmp & 0x7FFFFC) >> 2);
+
+	*value = ADC_DATA(tmp);
+
+	DBGWRT_1((DBH, "LL - Z188_Read ch=%d value=0x%x (raw=0x%x)\n", ch, *value, tmp));
 
 	return(ret);
 }
@@ -730,9 +666,6 @@ static int32 Z188_Write( /* nodoc */
  *                                      0 = unipolar
  *                                      1 = bipolar
  *                                      Note: ch must be enabled
- *                M36_EXT_TRIG         defines the sampling mode  0..1
- *                                      0 = internal trigger
- *                                      1 = external trigger
  *                M36_CALIBRATE        start calibration          -
  *                                      Note: interrupt must be
  *                                            disabled
@@ -755,7 +688,6 @@ static int32 Z188_SetStat(
 	)
 {
 	int32		value	= (int32)value32_or_64;	/* 32bit value     */
-	INT32_OR_64	valueP	= value32_or_64;		/* stores 32/64bit pointer */
 
 	int32 error = ERR_SUCCESS;
 
@@ -792,6 +724,7 @@ static int32 Z188_SetStat(
 		  | channel enable            |
 		  +--------------------------*/
 	case M36_CH_ENABLE:
+		DBGWRT_1((DBH, "LL - Z188_SetStat called for channel %d\n", value));
 		if ( (value < 0) || (value > 1) ) {
 			error = ERR_LL_ILL_PARAM;
 			break;
@@ -835,22 +768,6 @@ static int32 Z188_SetStat(
 		/* initialize all channels */
 		InitAllChan(llHdl);
 		break;
-        /*--------------------------+
-		  | trigger mode (int/ext)  |
-		  +--------------------------*/
-	case M36_EXT_TRIG:
-		if ( (value < 0) || (value > 1) ) {
-			error = ERR_LL_ILL_PARAM;
-			break;
-		}
-		if (value){
-			MSETMASK_D16(llHdl->ma, CTRL_REG, EXT);	/* external */
-		}
-		else{
-			MCLRMASK_D16(llHdl->ma, CTRL_REG, EXT); /* internal */
-		}
-		llHdl->extTrig = value;
-		break;
 		/*-------------------------+
 		  |  start calibration      |
 		  +-------------------------*/
@@ -858,6 +775,20 @@ static int32 Z188_SetStat(
 		error = ERR_LL_ILL_FUNC;
 		break;
 
+	case Z188_MODE:
+		if ( (value < 0x00) || (value > 0x01) ) {
+			error = ERR_LL_ILL_PARAM;
+			break;
+		}
+
+		if ((ch < 0) || (ch > 4)) {
+			error = ERR_LL_ILL_PARAM;
+			break;
+		}
+
+		llHdl->mmode[ch] = value;
+		ConfigChan(llHdl, ch);
+		break;
 /* --- Flash Functions for internal use only! --- */
 
 		/*-------------------------+
@@ -919,9 +850,6 @@ static int32 Z188_SetStat(
  *                M36_BIPOLAR          measuring mode for all ch  0..1
  *                                      0 = unipolar
  *                                      1 = bipolar
- *                M36_EXT_TRIG         defines sampling mode      0..1
- *                                      0 = internal trigger
- *                                      1 = external trigger
  *                M36_EXT_PIN          state of binary input      0..1
  *                M36_SINGLE_ENDED     def. type of input adapter 0..1
  *                                      0 = differential
@@ -997,12 +925,6 @@ static int32 Z188_GetStat(
 		*valueP = llHdl->irqCount;
 		break;
         /*--------------------------+
-		  |  id prom check enabled    |
-		  +--------------------------*/
-	case M_LL_ID_CHECK:
-		*valueP = llHdl->idCheck;
-		break;
-        /*--------------------------+
 		  |   id prom size            |
 		  +--------------------------*/
 	case M_LL_ID_SIZE:
@@ -1048,18 +970,6 @@ static int32 Z188_GetStat(
 		  +--------------------------*/
 	case M36_BIPOLAR:
 		*valueP = (int32)llHdl->bipolar;
-		break;
-        /*--------------------------+
-		  | trigger mode              |
-		  +--------------------------*/
-	case M36_EXT_TRIG:
-		*valueP = (int32)llHdl->extTrig;
-		break;
-        /*--------------------------+
-		  |  binary input             |
-		  +--------------------------*/
-	case M36_EXT_PIN:
-		*valueP =  ((MREAD_D16(llHdl->ma, STAT_REG) & BIN) ? 1 : 0);
 		break;
         /*--------------------------+
 		  | single ended            |
@@ -1123,7 +1033,9 @@ static int32 Z188_GetStat(
 		longval = (hi << 16) | lo;
 		*valueP = longval;
 		break;
-
+	case Z188_MODE:
+		*valueP = (int32)llHdl->mmode[ch];
+		break;
         /*--------------------------+
 		 |  MBUF + unknown          |
 		 +--------------------------*/
@@ -1320,7 +1232,7 @@ static int32 Z188_Irq(
 	/*----------------------+
 	| reset irq             |
 	+----------------------*/
-	MSETMASK_D16(llHdl->ma, CTRL_REG, RST);
+	/* MSETMASK_D16(llHdl->ma, CTRL_REG, RST); */
 
 	/*----------------------+
 	| fill buffer           |
@@ -1565,16 +1477,16 @@ static void InitAllChan(	/* nodoc */
 )
 {
 	u_int16 ch;			/* current channel */
-	u_int16 currDat;	/* current data element */
-	u_int16 prevDat;	/* previous data element */
 	u_int32 cfg;
 
     DBGWRT_1((DBH, "LL - Z188: InitAllChan\n"));
 
+	cfg = MREAD_D32(llHdl->ma, CTRL_REG);
+	if (!(cfg & ADC_CFG_AUTO)) {
     DBGWRT_1((DBH, "LL - Z188: Enable ADC automode\n"));
-	cfg = MREAD_D32(llHdl->ma, 0x40);
-	cfg |= 0x1;
-	MWRITE_D32(llHdl->ma, 0x40, cfg);
+		cfg |= ADC_CFG_AUTO;
+		MWRITE_D32(llHdl->ma, CTRL_REG, cfg);
+	}
 
 	/* search for enabled channels */
 	for (ch=0; ch<llHdl->chNumber; ch++) {
@@ -1609,8 +1521,17 @@ static void ConfigChan(	/* nodoc */
     DBGWRT_1((DBH, "LL - Z188: ConfigChan\n"));
 
 	cfg = MREAD_D32(llHdl->ma, llHdl->dataReg[ch]);
+
+    /* Set gain to 0 */
 	cfg &= ~0x0700000;
+    /* Set measute mode (Voltage or Current) */
+    if (llHdl->mmode[ch] == Z188_MODE_CURRENT) {
+		bitset(cfg, Z188_MEASURE_MODE);
+    } else {
+		bitclr(cfg, Z188_MEASURE_MODE);
+    }
 	MWRITE_D32(llHdl->ma, llHdl->dataReg[ch], cfg);
 	cfg = MREAD_D32(llHdl->ma, llHdl->dataReg[ch]);
+
 }
 
