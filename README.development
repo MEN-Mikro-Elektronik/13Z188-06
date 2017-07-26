@@ -1,0 +1,36 @@
+
+This driver has a special history:
+*) it was derived from 13m036-06.
+*) JT worked on the driver .c file, but never finished that. This project was
+   stopped suddenly by management order. There was never a repository with his
+   work. Just several versions of f404_drv.c files in the old archlinux
+   image of project 1320_SiemensNY_OBS.
+   Beside this there were some zipped source trees of this driver in in-step
+   (also in 1320_SiemensNY_OBS)
+*) I (czoz) started to work on that way later when JT had left the company
+   already. Nobody knew any details, so I started digging into what JT did.
+*) This repo starts with unmodified sources of 13m036-06. Then I added
+   all versions of code from JT (in branch snyobs-archlinux, directory JT)
+*) Then I tried a somehow understandable migration. Starting by adaption
+   of symbols (m36 -> z188 and f404 -> z188 in JT's code). Together with
+   several non-functional changes on JT's code (whitespace, etc.) I tried
+   to keep the patches in DRIVERS/* small. Every change in z188_drv.c
+   refers to a version from JT.
+*) The files JT*/comparison_with_f404_from_JT try to explain why I did what.
+   (in branch snyobs-archlinux)
+*) Commits in snyobs-archlinux do either change files in JT*/ or files
+   outside of JT*/. Never both! Keep it separated.
+*) In the end I created the branch 1320_SiemensNY_OBS by cherry-picking
+   all commits that change DRIVERS, INCLUDE, PACKAGE_DESC or the *txt files.
+*) Since there was not enough time to fix the DOC/* part, I removed
+   it for now.
+*) I left the tools and example, because I'm still unsure if they might
+   be usable with minor changes -> TODO
+
+Up to these revisions:
+   525111f - "Cleanup, no functional change: only ..." in 1320_SiemensNY_OBS
+and
+   117c4d5 - "Cleanup, no functional change: only ..." in snyobs-archlinux
+these branches have the same development, but 1320_SiemensNY_OBS does
+not contain JT*/. 1320_SiemensNY_OBS was meant for preliminary delivery.
+
